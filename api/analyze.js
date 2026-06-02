@@ -7,25 +7,29 @@ const RATE_LIMIT = parseInt(process.env.RATE_LIMIT_PER_DAY || '20', 10);
 async function redisCmd(...args) {
   const url   = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return null; // Redis non configurato → skip rate limit
+  if (!url || !token) return null;
 
-  const res = await fetch(`${url}/${args.map(encodeURIComponent).join('/')}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const data = await res.json();
-  return data.result;
+  try {
+    const res = await fetch(`${url}/${args.map(encodeURIComponent).join('/')}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    return data.result;
+  } catch (e) {
+    return null; // Redis non raggiungibile → skip rate limit
+  }
 }
 
 // ── Rate limit: max RATE_LIMIT richieste per IP al giorno ──────────────────
 async function checkRateLimit(ip) {
-  const key = `berman:rl:${ip}:${new Date().toISOString().slice(0, 10)}`; // reset a mezzanotte UTC
+  const key = `berman:rl:${ip}:${new Date().toISOString().slice(0, 10)}`;
   const count = await redisCmd('INCR', key);
-  if (count === 1) await redisCmd('EXPIRE', key, '86400'); // TTL 24h al primo hit
+  if (count === 1) await redisCmd('EXPIRE', key, '86400');
   return count;
 }
 
 // ── Handler principale ─────────────────────────────────────────────────────
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS preflight
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -36,31 +40,32 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // 1. Verifica password ──────────────────────────────────────────────────
+  // 1. Verifica password ─────────────────────────────────────────────────
   const sitePassword = process.env.SITE_PASSWORD;
   if (sitePassword) {
     const provided = req.headers['x-site-password'] || '';
     if (provided !== sitePassword) {
-      return res.status(401).json({ error: 'Password errata. Controlla le credenziali di accesso.' });
+      return res.status(401).json({ error: 'Password errata.' });
     }
   }
 
   // 2. Rate limit per IP ─────────────────────────────────────────────────
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
   const count = await checkRateLimit(ip);
   if (count !== null && count > RATE_LIMIT) {
     return res.status(429).json({
-      error: `Limite giornaliero raggiunto (${RATE_LIMIT} analisi/giorno per IP). Riprova domani.`,
+      error: `Limite giornaliero raggiunto (${RATE_LIMIT} analisi/giorno). Riprova domani.`,
     });
   }
 
   // 3. Validazione input ─────────────────────────────────────────────────
-  const { prompt } = req.body || {};
-  if (!prompt || typeof prompt !== 'string' || prompt.length < 10) {
-    return res.status(400).json({ error: 'Prompt mancante o non valido.' });
+  const body = req.body || {};
+  const prompt = body.prompt;
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'Prompt mancante.' });
   }
   if (prompt.length > 60000) {
-    return res.status(400).json({ error: 'Prompt troppo lungo (max 60.000 caratteri).' });
+    return res.status(400).json({ error: 'Prompt troppo lungo.' });
   }
 
   // 4. Chiave OpenAI ─────────────────────────────────────────────────────
@@ -95,9 +100,9 @@ export default async function handler(req, res) {
 
     const data    = await upstream.json();
     const content = data.choices?.[0]?.message?.content || '';
-    return res.status(200).json({ content, remaining: Math.max(0, RATE_LIMIT - count) });
+    return res.status(200).json({ content, remaining: Math.max(0, RATE_LIMIT - (count || 0)) });
 
   } catch (e) {
-    return res.status(500).json({ error: e.message || 'Errore interno del server.' });
+    return res.status(500).json({ error: e.message || 'Errore interno.' });
   }
-}
+};

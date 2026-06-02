@@ -1,4 +1,4 @@
-// Vercel Serverless Function — Metodo Berman
+/// Vercel Serverless Function — Metodo Berman
 // Protezioni: password segreta + rate limit per IP via Upstash Redis
 
 const RATE_LIMIT = parseInt(process.env.RATE_LIMIT_PER_DAY || '20', 10);
@@ -49,16 +49,7 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // 2. Rate limit per IP ─────────────────────────────────────────────────
-  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
-  const count = await checkRateLimit(ip);
-  if (count !== null && count > RATE_LIMIT) {
-    return res.status(429).json({
-      error: `Limite giornaliero raggiunto (${RATE_LIMIT} analisi/giorno). Riprova domani.`,
-    });
-  }
-
-  // 3. Validazione input ─────────────────────────────────────────────────
+  // 2. Validazione input ─────────────────────────────────────────────────
   const body = req.body || {};
   const prompt = body.prompt;
   if (!prompt || typeof prompt !== 'string') {
@@ -66,6 +57,18 @@ module.exports = async function handler(req, res) {
   }
   if (prompt.length > 60000) {
     return res.status(400).json({ error: 'Prompt troppo lungo.' });
+  }
+
+  // 3. Rate limit — solo per prompt reali (non ping di verifica password) ─
+  const isPing = prompt.trim().toLowerCase() === 'ping';
+  if (!isPing) {
+    const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+    const count = await checkRateLimit(ip);
+    if (count !== null && count > RATE_LIMIT) {
+      return res.status(429).json({
+        error: `Limite giornaliero raggiunto (${RATE_LIMIT} analisi/giorno). Riprova domani.`,
+      });
+    }
   }
 
   // 4. Chiave OpenAI ─────────────────────────────────────────────────────

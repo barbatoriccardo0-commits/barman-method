@@ -1,4 +1,4 @@
-/// Vercel Serverless Function — Metodo Berman
+// Vercel Serverless Function — Metodo Berman
 // Protezioni: password segreta + rate limit per IP via Upstash Redis
 
 const RATE_LIMIT = parseInt(process.env.RATE_LIMIT_PER_DAY || '20', 10);
@@ -103,7 +103,7 @@ module.exports = async function handler(req, res) {
 
     const data    = await upstream.json();
     const content = data.choices?.[0]?.message?.content || '';
-    return res.status(200).json({ content, remaining: Math.max(0, RATE_LIMIT - (count || 0)) });
+    return res.status(200).json({ content });
 
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore interno.' });

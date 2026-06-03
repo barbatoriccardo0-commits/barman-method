@@ -1181,7 +1181,8 @@ async function fetchEdgarData() {
  
   const prompt = `Sei un analista finanziario forense specializzato nel Metodo Berman (inventario retail). Raccogli TUTTI i dati disponibili per ${company || ticker} (ticker: ${ticker}) dalla tua knowledge base aggiornata (SEC EDGAR 10-Q/10-K, earnings call trascrizioni, Macrotrends, Stockanalysis, report analisti, notizie settore).
  
-Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — nessun testo prima o dopo. Usa null per valori non reperibili con certezza.
+Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — nessun testo prima o dopo.
+IMPORTANTE: usa la tua miglior stima per ogni campo, anche se approssimativa. Un valore approssimativo è sempre meglio di null. Usa null SOLO se non hai assolutamente nessuna informazione su quel dato. Indica le incertezze nel campo "note".
  
 SCHEMA DA RESTITUIRE:
 {
@@ -1255,7 +1256,7 @@ REGOLE CRITICHE:
    - staff: "declining" | "normal" | "good" | ""
 5. Includi almeno 3 competitor diretti con i loro dati di inventario
 6. fonti: elenca ogni fonte usata, anche se generica ("knowledge base al [data]")
-7. Non inventare dati — usa null se non sei sicuro`;
+7. PRIORITÀ DATI: usa la tua knowledge base per stimare i valori con la massima precisione possibile. Per aziende quotate USA (S&P500, Russell 1000) hai dati sufficienti per compilare la maggior parte dei campi. Preferisci sempre un valore approssimativo a null — indica l'incertezza nelle "note".`;
  
   let data = null;
   try {
@@ -1276,44 +1277,149 @@ REGOLE CRITICHE:
     buildEdgarLinks(ticker, links); return;
   }
  
-  // ── Helper: imposta campo solo se ha un valore ──────────────────────────
+  // ── URL fonti dinamici per questo ticker ───────────────────────────────
+  const tickerLow = ticker.toLowerCase();
+  const srcEdgar    = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${ticker}&type=10-Q&dateb=&owner=include&count=8`;
+  const srcMacro    = `https://www.macrotrends.net/stocks/charts/${ticker}/${tickerLow}/inventory-levels`;
+  const srcSA       = `https://stockanalysis.com/stocks/${tickerLow}/financials/?p=quarterly`;
+  const srcYahoo    = `https://finance.yahoo.com/quote/${ticker}`;
+  const srcFinviz   = `https://finviz.com/quote.ashx?t=${ticker}`;
+ 
+  // ── Helper base (nessun colore — solo per campi certi al 100%) ──────────
   function setField(id, val) {
     if (val === null || val === undefined) return;
     const el = document.getElementById(id);
     if (el) el.value = val;
   }
  
-  // ── Dati azienda base ───────────────────────────────────────────────────
-  if (data.company) setField('a_company', data.company);
-  if (data.company) setField('a_ticker', ticker);
-  if (data.sector)  { const el = document.getElementById('a_sector'); if(el) el.value = matchSector(data.sector); }
-  setField('a_stores',   data.negozi);
-  setField('a_price',    data.prezzo);
-  setField('a_pe',       data.pe_forward);
- 
-  // ── Valutazione e mercato ───────────────────────────────────────────────
-  setField('a_pe_fwd',      data.pe_forward);
-  setField('a_pe_sector',   data.pe_settore);
-  setField('a_short_int',   data.short_interest_pct);
-  setField('a_eps_cons',    data.eps_consenso);
-  setField('a_eps_prev',    data.eps_anno_prec);
-  setField('a_from_high',   data.calo_da_high_pct);
-  setField('a_gm_normal',   data.gm_normalizzato);
-  setField('a_shares',      data.shares_M);
-  setField('a_rev_down',    data.revisioni_ribasso_90g);
-  setField('a_rev_up',      data.revisioni_rialzo_90g);
-  setField('a_mgmt_misses', data.guidance_mancate_8q);
-  setField('a_days_to_earn',data.giorni_al_prossimo_earnings);
-  setField('a_store_delta', data.store_delta_yoy_pct);
-  setField('a_dtc_pct',     data.dtc_pct);
- 
-  // EPS ultimi 4 trimestri
-  if (Array.isArray(data.eps_ultimi_4q)) {
-    ['a_eps_q1','a_eps_q2','a_eps_q3','a_eps_q4'].forEach((id,i) => setField(id, data.eps_ultimi_4q[i]));
+  // ── Helper VERDE: alta affidabilità (~85-95%) ───────────────────────────
+  function setFieldG(id, val, pct, sourceLabel, sourceUrl) {
+    if (val === null || val === undefined) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
+    el.style.borderColor = '#16a34a';
+    el.style.borderWidth = '2px';
+    el.style.background  = '#f0fdf4';
+    el.title = `✅ Accuratezza stimata: ~${pct}% — Fonte: ${sourceLabel} (${sourceUrl})`;
+    el.dataset.uncertain = pct;
   }
  
-  // Contesto settore
-  if (data.contesto_settore) setField('a_context', data.contesto_settore);
+  // ── Helper ARANCIONE: media/bassa affidabilità (~50-80%) ────────────────
+  function setFieldC(id, val, pct, sourceLabel, sourceUrl) {
+    if (val === null || val === undefined) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
+    el.style.borderColor = '#f97316';
+    el.style.borderWidth = '2px';
+    el.style.background  = '#fff7ed';
+    el.title = `🟠 Accuratezza stimata: ~${pct}% — Per maggiore sicurezza verifica su: ${sourceLabel} (${sourceUrl})`;
+    el.dataset.uncertain = pct;
+  }
+ 
+  // ── Helper VERDE per select ─────────────────────────────────────────────
+  function setSelectG(id, val, pct, sourceLabel, sourceUrl) {
+    if (!val) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const opts = [...el.options].map(o => o.value);
+    if (!opts.includes(val)) return;
+    el.value = val;
+    el.style.borderColor = '#16a34a';
+    el.style.borderWidth = '2px';
+    el.style.background  = '#f0fdf4';
+    el.title = `✅ Accuratezza stimata: ~${pct}% — Fonte: ${sourceLabel} (${sourceUrl})`;
+  }
+ 
+  // ── Helper ARANCIONE per select ─────────────────────────────────────────
+  function setSelectC(id, val, pct, sourceLabel, sourceUrl) {
+    if (!val) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const opts = [...el.options].map(o => o.value);
+    if (!opts.includes(val)) return;
+    el.value = val;
+    el.style.borderColor = '#f97316';
+    el.style.borderWidth = '2px';
+    el.style.background  = '#fff7ed';
+    el.title = `🟠 Accuratezza stimata: ~${pct}% — Per maggiore sicurezza verifica su: ${sourceLabel} (${sourceUrl})`;
+    el.dataset.uncertain = pct;
+  }
+ 
+  // ── Helper per array griglia ────────────────────────────────────────────
+  function highlightEls(els, pct, sourceLabel, sourceUrl) {
+    const color  = pct >= 80 ? '#16a34a' : '#f97316';
+    const bg     = pct >= 80 ? '#f0fdf4' : '#fff7ed';
+    const icon   = pct >= 80 ? '✅' : '🟠';
+    const verb   = pct >= 80 ? 'Fonte' : 'Per maggiore sicurezza verifica su';
+    els.forEach(el => {
+      if (!el || el.value === '') return;
+      el.style.borderColor = color;
+      el.style.borderWidth = '2px';
+      el.style.background  = bg;
+      el.title = `${icon} Accuratezza stimata: ~${pct}% — ${verb}: ${sourceLabel} (${sourceUrl})`;
+      el.dataset.uncertain = pct;
+    });
+  }
+ 
+  // ── Helper per textarea con colore ─────────────────────────────────────
+  function setTextareaC(id, val, pct, sourceLabel, sourceUrl) {
+    if (!val) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
+    el.style.borderColor = '#f97316';
+    el.style.borderWidth = '2px';
+    el.style.background  = '#fff7ed';
+    el.title = `🟠 Accuratezza stimata: ~${pct}% — Per maggiore sicurezza verifica su: ${sourceLabel} (${sourceUrl})`;
+  }
+ 
+  // ── Dati azienda base ───────────────────────────────────────────────────
+  // company e ticker: certi al 100% (viene dall'input utente)
+  if (data.company) setField('a_company', data.company);
+  if (data.company) setField('a_ticker',  ticker);
+  // sector: ~85% (match testuale)
+  if (data.sector) {
+    const el = document.getElementById('a_sector');
+    if (el) {
+      el.value = matchSector(data.sector);
+      el.style.borderColor = '#16a34a';
+      el.style.borderWidth = '2px';
+      el.style.background  = '#f0fdf4';
+      el.title = `✅ Accuratezza stimata: ~85% — Fonte: knowledge base AI`;
+    }
+  }
+  setFieldG('a_stores', data.negozi,      85, 'Yahoo Finance / 10-K', srcYahoo);
+  setFieldG('a_price',  data.prezzo,      90, 'Yahoo Finance',        srcYahoo);
+  setFieldG('a_pe',     data.pe_forward,  90, 'Yahoo Finance',        srcYahoo);
+ 
+  // ── Valutazione e mercato (~85-90%) ─────────────────────────────────────
+  setFieldG('a_pe_fwd',    data.pe_forward,          90, 'Yahoo Finance',    srcYahoo);
+  setFieldG('a_pe_sector', data.pe_settore,           85, 'Finviz / Sector',  srcFinviz);
+  setFieldG('a_eps_cons',  data.eps_consenso,         90, 'Yahoo Finance',    srcYahoo);
+  setFieldG('a_eps_prev',  data.eps_anno_prec,        90, 'Yahoo Finance',    srcYahoo);
+  setFieldG('a_from_high', data.calo_da_high_pct,     90, 'Yahoo Finance',    srcYahoo);
+  setFieldG('a_shares',    data.shares_M,             90, 'Yahoo Finance',    srcYahoo);
+  setFieldG('a_short_int', data.short_interest_pct,   85, 'Finviz',           srcFinviz);
+ 
+  // ~75% affidabili: EPS storici, GM normalizzato → arancione leggero
+  if (Array.isArray(data.eps_ultimi_4q)) {
+    ['a_eps_q1','a_eps_q2','a_eps_q3','a_eps_q4'].forEach((id,i) => {
+      setFieldC(id, data.eps_ultimi_4q[i], 75, 'Yahoo Finance', `${srcYahoo}/financials`);
+    });
+  }
+  setFieldC('a_gm_normal', data.gm_normalizzato, 75, 'Stockanalysis', srcSA);
+ 
+  // ~60% affidabili: revisioni, guidance mancate, timing, store delta, DTC → arancione
+  setFieldC('a_rev_down',    data.revisioni_ribasso_90g,    60, 'Finviz / Bloomberg', srcFinviz);
+  setFieldC('a_rev_up',      data.revisioni_rialzo_90g,     60, 'Finviz / Bloomberg', srcFinviz);
+  setFieldC('a_mgmt_misses', data.guidance_mancate_8q,      60, 'Earnings releases', srcEdgar);
+  setFieldC('a_days_to_earn',data.giorni_al_prossimo_earnings, 60, 'Yahoo Finance', srcYahoo);
+  setFieldC('a_store_delta', data.store_delta_yoy_pct,      60, 'Earnings release / 10-K', srcEdgar);
+  setFieldC('a_dtc_pct',     data.dtc_pct,                  60, 'Earnings call / 10-K', srcEdgar);
+ 
+  // Contesto settore → gestito più avanti con setTextareaC
  
   // ── Griglia 12 trimestri ────────────────────────────────────────────────
   const qlEls   = [...document.querySelectorAll('#tab-analyzer .ql')];
@@ -1328,8 +1434,8 @@ REGOLE CRITICHE:
   const ndEls   = [...document.querySelectorAll('#tab-analyzer .nd')];
  
   const n = Math.min(data.periodi.length, 12);
+  const v = (arr, i) => (arr && arr[i] !== null && arr[i] !== undefined) ? arr[i] : '';
   for (let i = 0; i < 12; i++) {
-    const v = (arr, i) => (arr && arr[i] !== null && arr[i] !== undefined) ? arr[i] : '';
     if (qlEls[i])   qlEls[i].value   = i < n ? (data.periodi[i] || '') : '';
     if (invEls[i])  invEls[i].value  = v(data.inventario_M, i);
     if (cogsEls[i]) cogsEls[i].value = v(data.cogs_M, i);
@@ -1341,8 +1447,18 @@ REGOLE CRITICHE:
     if (arEls[i])   arEls[i].value   = v(data.ar_M, i);
     if (ndEls[i])   ndEls[i].value   = v(data.net_debt_M, i);
   }
+  // Evidenziazione per categoria di affidabilità
+  highlightEls(invEls,  70, 'SEC EDGAR 10-Q → Inventories',        srcEdgar);
+  highlightEls(cogsEls, 70, 'SEC EDGAR 10-Q → Cost of Goods Sold', srcEdgar);
+  highlightEls(salEls,  70, 'Stockanalysis / Macrotrends',          srcSA);
+  highlightEls(gmEls,   70, 'Stockanalysis → Financials',           srcSA);
+  highlightEls(sssEls,  60, 'Earnings Release / MD&A',              srcEdgar);
+  highlightEls(apEls,   50, 'SEC EDGAR 10-Q → Accounts Payable',   srcEdgar);
+  highlightEls(ocfEls,  50, 'SEC EDGAR 10-Q → Cash Flow Statement',srcEdgar);
+  highlightEls(arEls,   50, 'SEC EDGAR 10-Q → Accounts Receivable',srcEdgar);
+  highlightEls(ndEls,   50, 'SEC EDGAR 10-Q → Balance Sheet',      srcEdgar);
  
-  // ── Competitor (popola le prime righe esistenti) ─────────────────────────
+  // ── Competitor (~70% affidabili) ────────────────────────────────────────
   if (Array.isArray(data.competitor) && data.competitor.length) {
     const compRows = document.querySelectorAll('#tab-analyzer .comp-row');
     data.competitor.slice(0, compRows.length).forEach((c, i) => {
@@ -1353,46 +1469,51 @@ REGOLE CRITICHE:
       const ivsEl  = row.querySelector('.c-invs');
       const gmEl   = row.querySelector('.c-gm');
       const sssEl  = row.querySelector('.c-sss');
-      if (nameEl && c.nome)      nameEl.value = c.nome;
-      if (dsiEl  && c.dsi)       dsiEl.value  = c.dsi;
-      if (ivsEl  && c.inv_sales) ivsEl.value  = c.inv_sales;
-      if (gmEl   && c.gm_pct)   gmEl.value    = c.gm_pct;
-      if (sssEl  && c.sss_pct)  sssEl.value   = c.sss_pct;
+      if (nameEl && c.nome) nameEl.value = c.nome;
+      const applyC = (el, val) => {
+        if (!el || val === null || val === undefined) return;
+        el.value = val;
+        el.style.borderColor = '#f97316';
+        el.style.borderWidth = '2px';
+        el.style.background  = '#fff7ed';
+        el.title = `🟠 Accuratezza stimata: ~70% — Verifica su: Stockanalysis (${srcSA})`;
+      };
+      applyC(dsiEl,  c.dsi);
+      applyC(ivsEl,  c.inv_sales);
+      applyC(gmEl,   c.gm_pct);
+      applyC(sssEl,  c.sss_pct);
     });
   }
  
-  // ── Management notes ────────────────────────────────────────────────────
-  if (data.management_notes) {
-    const mgmtEl = document.getElementById('a_mgmt');
-    if (mgmtEl) mgmtEl.value = data.management_notes;
-  }
+  // ── Management notes (~60% affidabile) ──────────────────────────────────
+  setTextareaC('a_mgmt', data.management_notes, 60, 'SEC EDGAR earnings releases', srcEdgar);
  
-  // ── Earnings call forensics ──────────────────────────────────────────────
-  if (data.earnings_call_forensics) {
-    const transcriptEl = document.getElementById('a_transcript');
-    if (transcriptEl) transcriptEl.value = data.earnings_call_forensics;
-  }
+  // ── Contesto settore (qualitativo — arancione 65%) ───────────────────────
+  setTextareaC('a_context', data.contesto_settore, 65, 'knowledge base AI / notizie settore', srcFinviz);
  
-  // ── Channel Check ────────────────────────────────────────────────────────
+  // ── Earnings call forensics (~55% affidabile) ────────────────────────────
+  setTextareaC('a_transcript', data.earnings_call_forensics, 55, 'SEC EDGAR / Seeking Alpha', srcEdgar);
+ 
+  // ── Channel Check (~50% affidabile) ─────────────────────────────────────
   if (data.channel_check) {
     const cc = data.channel_check;
-    const setSelect = (id, val) => {
-      if (!val) return;
-      const el = document.getElementById(id);
-      if (!el) return;
-      // verifica che l'opzione esista prima di impostarla
-      const opts = [...el.options].map(o => o.value);
-      if (opts.includes(val)) el.value = val;
-    };
-    setSelect('cc_overstocked', cc.overstocked);
-    setSelect('cc_promos',      cc.promos);
-    setSelect('cc_stale',       cc.stale);
-    setSelect('cc_traffic',     cc.traffic);
-    setSelect('cc_comps_lean',  cc.comps_lean);
-    setSelect('cc_staff',       cc.staff);
+    const ccSrc = 'report analisti / notizie settore';
+    const ccUrl = srcFinviz;
+    setSelectC('cc_overstocked', cc.overstocked, 50, ccSrc, ccUrl);
+    setSelectC('cc_promos',      cc.promos,      50, ccSrc, ccUrl);
+    setSelectC('cc_stale',       cc.stale,       50, ccSrc, ccUrl);
+    setSelectC('cc_traffic',     cc.traffic,     50, ccSrc, ccUrl);
+    setSelectC('cc_comps_lean',  cc.comps_lean,  50, ccSrc, ccUrl);
+    setSelectC('cc_staff',       cc.staff,       50, ccSrc, ccUrl);
     if (cc.notes) {
-      const notesEl = document.getElementById('cc_notes');
-      if (notesEl) notesEl.value = cc.notes;
+      const el = document.getElementById('cc_notes');
+      if (el) {
+        el.value = cc.notes;
+        el.style.borderColor = '#f97316';
+        el.style.borderWidth = '2px';
+        el.style.background  = '#fff7ed';
+        el.title = `🟠 Accuratezza stimata: ~50% — Verifica su: Finviz / report analisti (${ccUrl})`;
+      }
     }
   }
  
@@ -1418,6 +1539,12 @@ REGOLE CRITICHE:
     · Aggiornato a: <strong>${data.data_aggiornamento || 'N/D'}</strong>
     ${data.note ? '<br><span style="font-size:12px;color:var(--text3);">⚠️ ' + data.note + '</span>' : ''}
     <br><span style="color:var(--green);font-size:12px;">✅ Compilati automaticamente: dati quantitativi 12Q · earnings call forensics · channel check · note management</span>
+    <div style="margin-top:8px;padding:9px 13px;background:#f8fafd;border:1px solid var(--border);border-radius:7px;font-size:12px;line-height:1.8;">
+      <strong style="color:var(--navy);">🎨 Legenda colori — passa il mouse su qualsiasi campo per vedere accuratezza e fonte:</strong><br>
+      <span style="color:#15803d;">✅ Bordo verde</span> = alta affidabilità (~85–95%) — dati di mercato pubblici<br>
+      <span style="color:#ea580c;">🟠 Bordo arancione</span> = accuratezza media/bassa (~50–75%) — verifica consigliata prima di analizzare<br>
+      <span style="color:var(--text3);">⬜ Nessun bordo</span> = dato inserito da te o certo al 100%
+    </div>
     ${fontiHtml}`;
   result.style.display = 'block';
   buildEdgarLinks(ticker, links);

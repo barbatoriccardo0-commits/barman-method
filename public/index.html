@@ -1179,31 +1179,32 @@ async function fetchEdgarData() {
  
   loading.style.display = 'flex'; result.style.display = 'none';
  
-  const prompt = `Sei un analista finanziario esperto. Fornisci una raccolta COMPLETA di dati finanziari per ${company || ticker} (ticker: ${ticker}) per popolare un'analisi del Metodo Berman.
+  const prompt = `Sei un analista finanziario forense specializzato nel Metodo Berman (inventario retail). Raccogli TUTTI i dati disponibili per ${company || ticker} (ticker: ${ticker}) dalla tua knowledge base aggiornata (SEC EDGAR 10-Q/10-K, earnings call trascrizioni, Macrotrends, Stockanalysis, report analisti, notizie settore).
  
-Rispondi SOLO con un JSON valido, senza testo aggiuntivo. Usa null per valori incerti.
+Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — nessun testo prima o dopo. Usa null per valori non reperibili con certezza.
  
+SCHEMA DA RESTITUIRE:
 {
-  "company": "Nome completo",
-  "sector": "Settore retail (es: Scarpe / Footwear)",
-  "negozi": 2800,
-  "prezzo": 28.50,
-  "pe_forward": 12.5,
-  "pe_settore": 16.0,
-  "short_interest_pct": 8.5,
-  "eps_consenso": 1.20,
-  "eps_anno_prec": 2.10,
-  "calo_da_high_pct": -45,
-  "eps_ultimi_4q": [0.82, 0.95, 1.10, 0.74],
-  "gm_normalizzato": 34.5,
-  "shares_M": 92.5,
-  "revisioni_ribasso_90g": 3,
-  "revisioni_rialzo_90g": 0,
-  "guidance_mancate_8q": 2,
-  "giorni_al_prossimo_earnings": 45,
-  "store_delta_yoy_pct": -3.2,
-  "dtc_pct": 22.0,
-  "contesto_settore": "Breve descrizione del contesto macro e settoriale attuale (2-3 frasi)",
+  "company": "Nome completo azienda",
+  "sector": "Settore retail preciso (es: Scarpe / Footwear)",
+  "negozi": null,
+  "prezzo": null,
+  "pe_forward": null,
+  "pe_settore": null,
+  "short_interest_pct": null,
+  "eps_consenso": null,
+  "eps_anno_prec": null,
+  "calo_da_high_pct": null,
+  "eps_ultimi_4q": [null, null, null, null],
+  "gm_normalizzato": null,
+  "shares_M": null,
+  "revisioni_ribasso_90g": null,
+  "revisioni_rialzo_90g": null,
+  "guidance_mancate_8q": null,
+  "giorni_al_prossimo_earnings": null,
+  "store_delta_yoy_pct": null,
+  "dtc_pct": null,
+  "contesto_settore": "2-3 frasi sul contesto macro e settoriale attuale",
   "periodi": ["Q1 FY2022","Q2 FY2022","Q3 FY2022","Q4 FY2022","Q1 FY2023","Q2 FY2023","Q3 FY2023","Q4 FY2023","Q1 FY2024","Q2 FY2024","Q3 FY2024","Q4 FY2024"],
   "inventario_M": [null,null,null,null,null,null,null,null,null,null,null,null],
   "cogs_M": [null,null,null,null,null,null,null,null,null,null,null,null],
@@ -1215,13 +1216,46 @@ Rispondi SOLO con un JSON valido, senza testo aggiuntivo. Usa null per valori in
   "ar_M": [null,null,null,null,null,null,null,null,null,null,null,null],
   "net_debt_M": [null,null,null,null,null,null,null,null,null,null,null,null],
   "competitor": [
-    {"nome": "Competitor1", "dsi": 85, "inv_sales": 0.22, "gm_pct": 33.0},
-    {"nome": "Competitor2", "dsi": 78, "inv_sales": 0.19, "gm_pct": 35.5}
+    {"nome": "Ticker — Nome competitor 1", "dsi": null, "inv_sales": null, "gm_pct": null, "sss_pct": null},
+    {"nome": "Ticker — Nome competitor 2", "dsi": null, "inv_sales": null, "gm_pct": null, "sss_pct": null},
+    {"nome": "Ticker — Nome competitor 3", "dsi": null, "inv_sales": null, "gm_pct": null, "sss_pct": null}
   ],
-  "data_aggiornamento": "Q4 FY2024",
-  "affidabilita": "media",
-  "note": "Nota su limitazioni dei dati"
-}`;
+  "earnings_call_forensics": "EARNINGS CALL FORENSICS — ultima call disponibile:\\n\\n[CEO/CFO, Q__ FY__]: \\"citazione esatta o parafrasi fedele sull'inventario\\"\\n[ANALISTA]: domanda pertinente\\n[RISPOSTA CEO/CFO]: \\"risposta con annotazione ⚠️ se evasiva o ✅ se diretta\\"\\n\\nAltri estratti rilevanti (margini, SSS, guidance):\\n- ⚠️ \\"frase evasiva\\" → Interpretazione forense\\n- ✅ \\"ammissione diretta\\" → Implicazione\\n\\nCREDIBILITÀ MANAGEMENT: X/10 — motivazione in una riga",
+  "management_notes": "Sintesi comportamentale: pattern linguistici ricorrenti, confronto con dichiarazioni passate, segnali di ottimismo sistematico o trasparenza",
+  "channel_check": {
+    "overstocked": "",
+    "promos": "",
+    "stale": "",
+    "traffic": "",
+    "comps_lean": "",
+    "staff": "",
+    "notes": "Descrizione qualitativa: report analisti field visit, recensioni clienti pubbliche, notizie recenti sullo stato degli store"
+  },
+  "fonti": [
+    {"tipo": "SEC 10-Q", "periodo": "Q__ FY__", "descrizione": "Dati inventario, COGS, vendite, AP, OCF, AR, net debt"},
+    {"tipo": "Earnings Call", "periodo": "Q__ FY__ — data", "descrizione": "Citazioni management, forensics"},
+    {"tipo": "Macrotrends / Stockanalysis", "periodo": "aggiornato a __", "descrizione": "Serie storica metriche"},
+    {"tipo": "Report analisti / stampa", "periodo": "__", "descrizione": "Channel check, sentiment settore"}
+  ],
+  "data_aggiornamento": "Q__ FY__",
+  "affidabilita": "alta | media | bassa",
+  "note": "Eventuali limitazioni: dati mancanti, periodi non coperti, incertezze sulla precisione"
+}
+ 
+REGOLE CRITICHE:
+1. I 12 periodi devono essere cronologicamente ordinati dal più vecchio (sx) al più recente (dx)
+2. Tutti gli array devono avere esattamente 12 elementi (usa null dove mancano dati)
+3. Valori monetari sempre in milioni USD ($M)
+4. channel_check — usa SOLO questi valori esatti:
+   - overstocked: "yes_bad" | "somewhat" | "no" | ""
+   - promos: "yes_heavy" | "somewhat" | "no" | ""
+   - stale: "yes" | "no" | ""
+   - traffic: "lower" | "similar" | "higher" | ""
+   - comps_lean: "yes_much" | "somewhat" | "no" | ""
+   - staff: "declining" | "normal" | "good" | ""
+5. Includi almeno 3 competitor diretti con i loro dati di inventario
+6. fonti: elenca ogni fonte usata, anche se generica ("knowledge base al [data]")
+7. Non inventare dati — usa null se non sei sicuro`;
  
   let data = null;
   try {
@@ -1327,11 +1361,64 @@ Rispondi SOLO con un JSON valido, senza testo aggiuntivo. Usa null per valori in
     });
   }
  
+  // ── Management notes ────────────────────────────────────────────────────
+  if (data.management_notes) {
+    const mgmtEl = document.getElementById('a_mgmt');
+    if (mgmtEl) mgmtEl.value = data.management_notes;
+  }
+ 
+  // ── Earnings call forensics ──────────────────────────────────────────────
+  if (data.earnings_call_forensics) {
+    const transcriptEl = document.getElementById('a_transcript');
+    if (transcriptEl) transcriptEl.value = data.earnings_call_forensics;
+  }
+ 
+  // ── Channel Check ────────────────────────────────────────────────────────
+  if (data.channel_check) {
+    const cc = data.channel_check;
+    const setSelect = (id, val) => {
+      if (!val) return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      // verifica che l'opzione esista prima di impostarla
+      const opts = [...el.options].map(o => o.value);
+      if (opts.includes(val)) el.value = val;
+    };
+    setSelect('cc_overstocked', cc.overstocked);
+    setSelect('cc_promos',      cc.promos);
+    setSelect('cc_stale',       cc.stale);
+    setSelect('cc_traffic',     cc.traffic);
+    setSelect('cc_comps_lean',  cc.comps_lean);
+    setSelect('cc_staff',       cc.staff);
+    if (cc.notes) {
+      const notesEl = document.getElementById('cc_notes');
+      if (notesEl) notesEl.value = cc.notes;
+    }
+  }
+ 
   updateLiveChart();
   updateBermanScore();
  
   const affColor = data.affidabilita === 'alta' ? 'var(--green)' : data.affidabilita === 'media' ? 'var(--yellow)' : 'var(--red)';
-  msg.innerHTML = `✅ Dati caricati: <strong>${n} trimestri</strong> per <strong>${data.company || ticker}</strong> · Affidabilità: <span style="color:${affColor};font-weight:700;">${data.affidabilita || 'N/D'}</span> · Aggiornato a: <strong>${data.data_aggiornamento || 'N/D'}</strong>${data.note ? '<br><span style="font-size:12px;color:var(--text3);">⚠️ ' + data.note + '</span>' : ''}<br><span style="color:var(--green);font-size:12px;">✅ Tutti i campi compilati automaticamente — puoi procedere direttamente con "Analizza"</span>`;
+ 
+  // Costruisce la sezione fonti
+  let fontiHtml = '';
+  if (Array.isArray(data.fonti) && data.fonti.length) {
+    fontiHtml = `<div style="margin-top:10px;padding:10px 14px;background:#f8fafd;border:1px solid var(--border);border-radius:7px;">
+      <div style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">📚 Fonti utilizzate</div>
+      ${data.fonti.map(f => `<div style="font-size:12px;color:var(--text2);margin-bottom:3px;">
+        <span style="font-weight:700;color:var(--navy);">${f.tipo || ''}${f.periodo ? ' · ' + f.periodo : ''}</span>
+        ${f.descrizione ? ' — ' + f.descrizione : ''}
+      </div>`).join('')}
+    </div>`;
+  }
+ 
+  msg.innerHTML = `✅ Dati caricati: <strong>${n} trimestri</strong> per <strong>${data.company || ticker}</strong>
+    · Affidabilità: <span style="color:${affColor};font-weight:700;">${data.affidabilita || 'N/D'}</span>
+    · Aggiornato a: <strong>${data.data_aggiornamento || 'N/D'}</strong>
+    ${data.note ? '<br><span style="font-size:12px;color:var(--text3);">⚠️ ' + data.note + '</span>' : ''}
+    <br><span style="color:var(--green);font-size:12px;">✅ Compilati automaticamente: dati quantitativi 12Q · earnings call forensics · channel check · note management</span>
+    ${fontiHtml}`;
   result.style.display = 'block';
   buildEdgarLinks(ticker, links);
 }

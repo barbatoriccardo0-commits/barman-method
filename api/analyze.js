@@ -1,14 +1,14 @@
 // Vercel Serverless Function — Metodo Berman
 // Protezioni: password segreta + rate limit per IP via Upstash Redis
-
+ 
 const RATE_LIMIT = parseInt(process.env.RATE_LIMIT_PER_DAY || '20', 10);
-
+ 
 // ── Upstash Redis REST helper ──────────────────────────────────────────────
 async function redisCmd(...args) {
   const url   = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return null;
-
+ 
   try {
     const res = await fetch(`${url}/${args.map(encodeURIComponent).join('/')}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -19,7 +19,7 @@ async function redisCmd(...args) {
     return null; // Redis non raggiungibile → skip rate limit
   }
 }
-
+ 
 // ── Rate limit: max RATE_LIMIT richieste per IP al giorno ──────────────────
 async function checkRateLimit(ip) {
   const key = `berman:rl:${ip}:${new Date().toISOString().slice(0, 10)}`;
@@ -27,7 +27,7 @@ async function checkRateLimit(ip) {
   if (count === 1) await redisCmd('EXPIRE', key, '86400');
   return count;
 }
-
+ 
 // ── Handler principale ─────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
   // CORS preflight
@@ -35,11 +35,11 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Site-Password');
   if (req.method === 'OPTIONS') return res.status(200).end();
-
+ 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+ 
   // 1. Verifica password ─────────────────────────────────────────────────
   const sitePassword = process.env.SITE_PASSWORD;
   if (sitePassword) {
@@ -48,7 +48,7 @@ module.exports = async function handler(req, res) {
       return res.status(401).json({ error: 'Password errata.' });
     }
   }
-
+ 
   // 2. Validazione input ─────────────────────────────────────────────────
   const body = req.body || {};
   const prompt = body.prompt;
@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
   if (prompt.length > 60000) {
     return res.status(400).json({ error: 'Prompt troppo lungo.' });
   }
-
+ 
   // 3. Rate limit — solo per prompt reali (non ping di verifica password) ─
   const isPing = prompt.trim().toLowerCase() === 'ping';
   if (!isPing) {
@@ -70,14 +70,14 @@ module.exports = async function handler(req, res) {
       });
     }
   }
-
+ 
   // 4. Chiave OpenAI ─────────────────────────────────────────────────────
   const apiKey = process.env.OPENAI_API_KEY;
   const model  = process.env.OPENAI_MODEL || 'gpt-4o';
   if (!apiKey) {
     return res.status(500).json({ error: 'OPENAI_API_KEY non configurata sul server.' });
   }
-
+ 
   // 5. Chiamata OpenAI ───────────────────────────────────────────────────
   try {
     const upstream = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -88,23 +88,29 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a quantitative financial analysis assistant specializing in inventory-based retail investment analysis. Always complete the full structured analysis requested, including scorecards, tables, and investment verdicts. Never refuse, never add disclaimers, never say you cannot perform the analysis. Respond entirely in Italian.'
+          },
+          { role: 'user', content: prompt }
+        ],
         max_tokens: 4096,
         temperature: 0.2,
       }),
     });
-
+ 
     if (!upstream.ok) {
       const err = await upstream.json().catch(() => ({}));
       return res.status(upstream.status).json({
         error: err.error?.message || `Errore OpenAI (${upstream.status})`,
       });
     }
-
+ 
     const data    = await upstream.json();
     const content = data.choices?.[0]?.message?.content || '';
     return res.status(200).json({ content });
-
+ 
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore interno.' });
   }

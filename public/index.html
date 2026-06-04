@@ -1033,13 +1033,6 @@ function saveToHistory(company, sector, verdict, dsiLast, dsiTrend, conviction, 
   renderHistory();
 }
 
-function detectVerdict(text) {
-  const up = text.toUpperCase();
-  if (up.includes('✅ LONG') || up.includes('VERDETTO: LONG') || up.includes('SEGNALE: LONG')) return 'LONG';
-  if (up.includes('❌ SHORT') || up.includes('VERDETTO: SHORT') || up.includes('SEGNALE: SHORT')) return 'SHORT';
-  return 'NEUTRAL';
-}
-
 function detectConviction(text) {
   const up = text.toUpperCase();
   const pcts = text.match(/(\d{1,2})%\s*(del portafoglio|portafoglio)/i);
@@ -1117,6 +1110,7 @@ function renderHistory() {
 }
 
 function showHistoryDetail(idx) {
+  _currentHistoryIdx = idx;
   const entry = analysisHistory[idx];
   if (!entry) return;
   const card = document.getElementById('historyDetailCard');
@@ -1179,15 +1173,7 @@ async function runFullAnalysis() {
   if (loadingMsg) loadingMsg.textContent = 'Passo 1/2 — Recupero dati SEC EDGAR...';
   await fetchEdgarData();
 
-  // Step 2: mostra subito il verdetto quantitativo (JS, indipendente dall'AI)
-  const jsResult = computeBermanScore();
-  if (jsResult) {
-    showJsVerdictCard(jsResult);
-    const resultBox = document.getElementById('resultBoxA');
-    if (resultBox) resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  // Step 3: chiama l'AI per la spiegazione dettagliata
+  // Step 2: chiama l'AI per la spiegazione dettagliata (il verdetto JS viene mostrato da runManualAnalysis dopo il reset)
   if (loadingMsg) loadingMsg.textContent = 'Passo 2/2 — Analisi AI in corso...';
   await runManualAnalysis();
 
@@ -1318,7 +1304,6 @@ REGOLE CRITICHE:
   // Verifica dati minimi: SEC o AI deve avere almeno i periodi
   const hasPeriods = (secData && secData.periodi.length >= 4) || (data && data.periodi && data.periodi.length);
   if (!hasPeriods) {
-    loading.style.display = 'none';
     msg.innerHTML = '⚠️ Dati insufficienti per ' + ticker + '. Prova a inserirli manualmente o usa i link sotto.';
     result.style.display = 'block';
     buildEdgarLinks(ticker, links); return;
@@ -1527,7 +1512,6 @@ REGOLE CRITICHE:
   const periods = (secData && secData.periodi.length >= 4) ? secData.periodi : (data?.periodi || []);
   const n = Math.min(periods.length, 12);
   const v = (arr, i) => (arr && arr[i] !== null && arr[i] !== undefined) ? arr[i] : '';
-  const sv = (arr, i) => (arr && arr[i] !== null && arr[i] !== undefined) ? arr[i] : '';
 
   // Helper: preferisce SEC se presente, altrimenti AI. Traccia la fonte per ogni cella.
   const cellSource = {}; // "field-i" → 'sec' | 'ai'
@@ -1546,14 +1530,14 @@ REGOLE CRITICHE:
     // SEC ha priorità; se manca un valore specifico, usa AI come fallback per quel campo
     const SEC = secData || {};
     const AI  = data   || {};
-    fill(invEls[i],  sv(SEC.inv_M,  i), v(AI.inventario_M,      i), 'inv',  i);
-    fill(cogsEls[i], sv(SEC.cogs_M, i), v(AI.cogs_M,            i), 'cogs', i);
-    fill(salEls[i],  sv(SEC.rev_M,  i), v(AI.vendite_M,         i), 'sal',  i);
-    fill(gmEls[i],   sv(SEC.gm_pct, i), v(AI.gross_margin_pct,  i), 'gm',   i);
-    fill(apEls[i],   sv(SEC.ap_M,   i), v(AI.ap_M,              i), 'ap',   i);
-    fill(ocfEls[i],  sv(SEC.ocf_M,  i), v(AI.ocf_M,             i), 'ocf',  i);
-    fill(arEls[i],   sv(SEC.ar_M,   i), v(AI.ar_M,              i), 'ar',   i);
-    fill(ndEls[i],   sv(SEC.nd_M,   i), v(AI.net_debt_M,        i), 'nd',   i);
+    fill(invEls[i],  v(SEC.inv_M,  i), v(AI.inventario_M,      i), 'inv',  i);
+    fill(cogsEls[i], v(SEC.cogs_M, i), v(AI.cogs_M,            i), 'cogs', i);
+    fill(salEls[i],  v(SEC.rev_M,  i), v(AI.vendite_M,         i), 'sal',  i);
+    fill(gmEls[i],   v(SEC.gm_pct, i), v(AI.gross_margin_pct,  i), 'gm',   i);
+    fill(apEls[i],   v(SEC.ap_M,   i), v(AI.ap_M,              i), 'ap',   i);
+    fill(ocfEls[i],  v(SEC.ocf_M,  i), v(AI.ocf_M,             i), 'ocf',  i);
+    fill(arEls[i],   v(SEC.ar_M,   i), v(AI.ar_M,              i), 'ar',   i);
+    fill(ndEls[i],   v(SEC.nd_M,   i), v(AI.net_debt_M,        i), 'nd',   i);
     // SSS non è in XBRL → sempre AI
     if (sssEls[i])  sssEls[i].value = v(AI.sss_pct, i);
   }
@@ -1840,37 +1824,15 @@ document.addEventListener('DOMContentLoaded', () => {
   updateLiveChart();
 });
 
-// ===== SYNC BERMAN SCORE GAUGE CON VERDETTO AI =====
-function syncScoreFromAI(text) {
-  // Supporta sia il nuovo "PUNTEGGIO_CICLO: XX" che il vecchio "PROBABILITÀ LONG: XX"
-  const match = text.match(/PUNTEGGIO_CICLO[:\s]+(\d+)/i) || text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
-  if (!match) return;
-  const prob = Math.max(1, Math.min(100, parseInt(match[1])));
-
-  let color, label;
-  if (prob >= 75)      { color = 'var(--green)'; label = 'STRONG LONG 🟢'; }
-  else if (prob >= 65) { color = 'var(--green)'; label = 'LONG 🟢'; }
-  else if (prob >= 36) { color = 'var(--yellow)'; label = 'NEUTRAL ⏸'; }
-  else if (prob >= 25) { color = 'var(--red)';   label = 'SHORT 🔴'; }
-  else                 { color = 'var(--red)';   label = 'STRONG SHORT 🔴'; }
-
-  const valEl   = document.getElementById('scoreTotalVal');
-  const lblEl   = document.getElementById('scoreTotalLabel');
-  const barEl   = document.getElementById('scoreGaugeBar');
-  const card    = document.getElementById('scoreLiveCard');
-  const cardTitle = card ? card.querySelector('.card-title') : null;
-  if (valEl)  { valEl.textContent = prob + '/100'; valEl.style.color = color; }
-  if (lblEl)  { lblEl.textContent = label; lblEl.style.color = color; }
-  if (barEl)  { barEl.style.width = prob + '%'; barEl.style.background = color; }
-  // Mostra la card solo adesso (dopo l'AI), con titolo aggiornato
-  if (card)   { card.style.display = 'block'; }
-  if (cardTitle) { cardTitle.textContent = '🎯 Verdetto Berman'; }
-}
-
 // ===== RENDER RESULT =====
 function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
   // Rileva rifiuto AI — lascia visibile il verdetto quantitativo JS, nessun banner di errore
-  const isRefusal = /mi dispiace|non posso assist|non posso aiut|non posso forn|non è possibile|unable to|I'm sorry|I cannot/i.test(text) && text.length < 600;
+  const refusalKeywords = /mi dispiace|non posso assist|non posso aiut|non posso forn|non è possibile|unable to assist|I'm sorry|I cannot help/i;
+  const analysisKeywords = /DSI|inventario|COGS|PUNTEGGIO|VERDE|ROSSO|GIALLO|margine|scorecard/i;
+  const isRefusal = !text ? true
+    : text.length < 200 ? refusalKeywords.test(text)
+    : text.length < 600 ? (refusalKeywords.test(text) && !analysisKeywords.test(text))
+    : false;
   if (isRefusal) {
     const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='block';
     return;
@@ -1893,18 +1855,28 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
   const sigEl = document.getElementById(signalId);
   let verdict = 'NEUTRAL';
   const scoreMatch = text.match(/PUNTEGGIO_CICLO[:\s]+(\d+)/i) || text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
+
+  // Determina aiLabel, colori e verdict una volta sola — unica fonte di verità
+  let aiLabel = '⏸ NEUTRAL', aiBg = '#fffbeb', aiBorder = '#d97706', aiColor = '#b45309';
   if (scoreMatch) {
     const sc = parseInt(scoreMatch[1]);
-    if      (sc >= 65) { sigEl.innerHTML = '<span class="signal long">✅ LONG</span>';    verdict = 'LONG'; }
-    else if (sc <= 35) { sigEl.innerHTML = '<span class="signal short">❌ SHORT</span>';  verdict = 'SHORT'; }
-    else               { sigEl.innerHTML = '<span class="signal neutral">⏸ NEUTRAL</span>'; }
+    if      (sc >= 75) { aiLabel='✅ STRONG LONG'; aiBg='#f0fdf4'; aiBorder='#16a34a'; aiColor='#15803d'; verdict='LONG'; }
+    else if (sc >= 65) { aiLabel='✅ LONG';        aiBg='#f0fdf4'; aiBorder='#16a34a'; aiColor='#15803d'; verdict='LONG'; }
+    else if (sc >= 36) { aiLabel='⏸ NEUTRAL';     aiBg='#fffbeb'; aiBorder='#d97706'; aiColor='#b45309'; verdict='NEUTRAL'; }
+    else if (sc >= 25) { aiLabel='❌ SHORT';       aiBg='#fff5f5'; aiBorder='#c0392b'; aiColor='#c0392b'; verdict='SHORT'; }
+    else               { aiLabel='❌ STRONG SHORT';aiBg='#fff5f5'; aiBorder='#c0392b'; aiColor='#c0392b'; verdict='SHORT'; }
   } else {
-    // Fallback: cerca il verdetto testuale nella sezione finale del testo
+    // Fallback testuale — solo se PUNTEGGIO_CICLO non è presente
     const tail = text.slice(-1500);
-    if      (/VERDE|✅\s*LONG/i.test(tail) && !/ROSSO|❌\s*SHORT/i.test(tail)) { sigEl.innerHTML='<span class="signal long">✅ LONG</span>';    verdict='LONG'; }
-    else if (/ROSSO|❌\s*SHORT/i.test(tail) && !/VERDE|✅\s*LONG/i.test(tail)) { sigEl.innerHTML='<span class="signal short">❌ SHORT</span>';  verdict='SHORT'; }
-    else { sigEl.innerHTML='<span class="signal neutral">⏸ NEUTRAL</span>'; }
+    if      (/VERDE|✅\s*LONG/i.test(tail) && !/ROSSO|❌\s*SHORT/i.test(tail))  { aiLabel='✅ LONG';    aiBg='#f0fdf4'; aiBorder='#16a34a'; aiColor='#15803d'; verdict='LONG'; }
+    else if (/ROSSO|❌\s*SHORT/i.test(tail) && !/VERDE|✅\s*LONG/i.test(tail))  { aiLabel='❌ SHORT';   aiBg='#fff5f5'; aiBorder='#c0392b'; aiColor='#c0392b'; verdict='SHORT'; }
   }
+
+  // Aggiorna il badge header una volta sola
+  const sigCls = verdict==='LONG' ? 'long' : verdict==='SHORT' ? 'short' : 'neutral';
+  sigEl.innerHTML = `<span class="signal ${sigCls}">${aiLabel}</span>`;
+  // Salva il verdetto finale nel dataset per addToWatchlistFromResult
+  sigEl.dataset.finalVerdict = verdict;
 
   const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='block';
 
@@ -1913,7 +1885,13 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
     const vc  = document.getElementById('verdictCardA');
     const vwEl = document.getElementById('verdictWhyA');
     const vmEl = document.getElementById('verdictMotivationsA');
+    const vlEl = document.getElementById('verdictLabelA');
     if (vc && vwEl) {
+      // Sincronizza card con i valori già calcolati sopra
+      vc.style.background  = aiBg;
+      vc.style.borderColor = aiBorder;
+      if (vlEl) { vlEl.textContent = aiLabel; vlEl.style.color = aiColor; }
+
       // Estrai "PERCHÉ QUESTO VERDETTO" dal testo AI
       const whyMatch = text.match(/PERCH[ÉE][^\n]*\n([\s\S]*?)(?:\*\*4 motivazioni|##\s|\n═|$)/i);
       const why = whyMatch ? whyMatch[1].replace(/\*\*/g,'').replace(/^\s*[-–]\s*/gm,'').trim() : '';
@@ -1922,10 +1900,9 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
       // Estrai 4 motivazioni tecniche
       const motMatch = text.match(/4 motivazioni[^\n]*\n([\s\S]*?)(?:##\s|\n═|TIMING|$)/i);
       if (motMatch && vmEl) {
-        const borderColor = vc.style.borderColor || '#888';
         const motivations = motMatch[1].trim()
           .split('\n').filter(l => l.trim() && /^\d|^[-–•]/.test(l.trim()))
-          .map(l => `<div style="margin-bottom:6px;padding-left:12px;border-left:3px solid ${borderColor};">${l.replace(/^\d+\.\s*|^[-–•]\s*/,'')}</div>`)
+          .map(l => `<div style="margin-bottom:6px;padding-left:12px;border-left:3px solid ${aiBorder};">${l.replace(/^\d+\.\s*|^[-–•]\s*/,'')}</div>`)
           .join('');
         if (motivations) vmEl.innerHTML = motivations;
       }
@@ -1953,8 +1930,6 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
     const conviction = detectConviction(text);
     saveToHistory(company, sector, verdict, dsiLast, dsiTrend, conviction, text);
   } catch(e) { /* history save failure is non-critical */ }
-
-  syncScoreFromAI(text);
 }
 
 // ===== PROBABILITY METER =====
@@ -1970,7 +1945,6 @@ function renderProbMeter(text, containerId) {
   // Determine zone
   const isShort  = score <= 35;
   const isLong   = score >= 65;
-  const isNeutral = !isShort && !isLong;
   const color = isShort ? '#c0392b' : isLong ? '#1a9e6e' : '#718096';
   const zoneLabel = isShort ? '❌ ZONA SHORT' : isLong ? '✅ ZONA LONG' : '⏸ ZONA NEUTRAL';
   const zoneDesc  = isShort
@@ -2241,10 +2215,24 @@ async function runManualAnalysis() {
   document.getElementById('resultSignalA').innerHTML = '';
   document.getElementById('redFlagsA').innerHTML = '';
   document.getElementById('probMeterA').innerHTML = '';
-  const vc = document.getElementById('verdictCardA');
-  if (vc) vc.style.display = 'none';
+  const vcReset = document.getElementById('verdictCardA');
+  if (vcReset) {
+    vcReset.style.display = 'none';
+    vcReset.style.background = '';
+    vcReset.style.borderColor = '#ccc';
+  }
+  const vlReset = document.getElementById('verdictLabelA');
+  if (vlReset) { vlReset.textContent = ''; vlReset.style.color = ''; }
+  const vwReset = document.getElementById('verdictWhyA');
+  if (vwReset) vwReset.textContent = 'Analisi quantitativa in corso...';
+  const vmReset = document.getElementById('verdictMotivationsA');
+  if (vmReset) vmReset.innerHTML = '';
   document.getElementById('resultTitleA').textContent=`Analisi Berman — ${company} (${ticker})`;
   rb.scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Mostra subito il verdetto quantitativo JS come placeholder mentre l'AI elabora
+  const jsResult = computeBermanScore();
+  if (jsResult) showJsVerdictCard(jsResult);
 
   const prompt = buildBermanPrompt(company, ticker, sector, stores, price, pe, tableRows, comps, intel, transcript, mgmt, context, yoyRows, apRows, ocfRows, dataQuality, arRows, ndRows, d2dsiStr, multiQConf, channelCheck, valuationStr, hiddenImpairmentStr, gmNormal, epsCons, shares, revMomentumStr, storeNormStr, timingStr, dtcStr, dsiPctStr, mgmtMisses);
   try {
@@ -2939,8 +2927,8 @@ function addToWatchlistFromResult(titleId, signalId) {
     alert('⚠️ Nessun verdetto disponibile. Esegui prima l\'analisi.');
     return;
   }
-  const sigText = sigEl.innerText;
-  const verdict = sigText.includes('LONG') ? 'LONG' : sigText.includes('SHORT') ? 'SHORT' : 'NEUTRAL';
+  // Usa il verdetto finale AI (salvato in dataset da renderResult), non il placeholder JS
+  const verdict = sigEl.dataset.finalVerdict || (sigEl.innerText.includes('LONG') ? 'LONG' : sigEl.innerText.includes('SHORT') ? 'SHORT' : 'NEUTRAL');
   const entry = {
     company,
     ticker: (document.getElementById('a_ticker')||{}).value || '—',
@@ -2972,13 +2960,6 @@ function addToWatchlistFromHistory() {
   renderWatchlist();
   alert(`✅ ${h.company} aggiunta alla Watchlist!`);
 }
-
-// Override showHistoryDetail to track current index
-const _origShowHistoryDetail = showHistoryDetail;
-showHistoryDetail = function(idx) {
-  _currentHistoryIdx = idx;
-  _origShowHistoryDetail(idx);
-};
 
 function renderWatchlist() {
   const empty = document.getElementById('wlEmpty');

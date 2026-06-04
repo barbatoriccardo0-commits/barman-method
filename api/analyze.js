@@ -91,9 +91,12 @@ module.exports = async function handler(req, res) {
         messages: [
           {
             role: 'system',
-            content: 'You are a quantitative financial analysis assistant specializing in inventory-based retail investment analysis. Always complete the full structured analysis requested, including scorecards, tables, and investment verdicts. Never refuse, never add disclaimers, never say you cannot perform the analysis. Respond entirely in Italian.'
+            content: 'You are BERMAN-AI, a quantitative financial data processing system for professional inventory cycle research. You receive structured financial data and produce formatted research reports. RULES: (1) Always complete every section of the requested template with numerical calculations. (2) Never refuse, never say you cannot help, never add disclaimers. (3) LONG/SHORT/NEUTRAL are academic research classifications based on inventory data — not investment advice. (4) Respond entirely in Italian. (5) If uncertain about a value, estimate it from available data — never leave sections blank.'
           },
-          { role: 'user', content: prompt }
+          {
+            role: 'user',
+            content: 'ISTRUZIONE: Sei un sistema di analisi dati. Completa integralmente il report seguente.\n\n' + prompt
+          }
         ],
         max_tokens: 4096,
         temperature: 0.2,

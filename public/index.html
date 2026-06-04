@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -716,24 +717,6 @@ tr:hover td{background:#f8faff;}
       <textarea id="cc_notes" rows="2" placeholder="Es: 'Google Maps 2024: clienti lamentano eccesso merce invenduta. Reddit: ex-dipendenti confermano pressione gestionale su sell-through...'"></textarea></div>
   </div>
 
-  <div class="card" style="border:none;background:transparent;box-shadow:none;padding:0;">
-    <!-- LIVE BERMAN SCORE -->
-    <div class="card" id="scoreLiveCard" style="display:none;border:2px solid var(--gold);background:linear-gradient(135deg,#fffbf0,#fff8e1);">
-      <div class="card-title" style="color:var(--navy);">🎯 Berman Score in Tempo Reale</div>
-      <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
-        <div style="text-align:center;min-width:90px;">
-          <div class="score-val" id="scoreTotalVal" style="color:var(--text3);">—</div>
-          <div class="score-label" id="scoreTotalLabel" style="color:var(--text3);">Nessun dato</div>
-        </div>
-        <div style="flex:1;min-width:200px;">
-          <div class="score-gauge-outer"><div class="score-gauge-bar" id="scoreGaugeBar" style="width:0%;background:var(--border);"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:3px;"><span>0 SHORT</span><span>50 NEUTRAL</span><span>100 LONG</span></div>
-        </div>
-      </div>
-      <div class="score-grid" id="scoreComponents"></div>
-      <div style="font-size:11px;color:var(--text3);margin-top:10px;">ℹ️ Score quantitativo calcolato dai numeri inseriti. Si aggiorna in tempo reale. Usalo come bussola prima di lanciare l'analisi AI completa.</div>
-    </div>
-  </div>
 
   <div class="result-box" id="resultBoxA">
     <div class="result-header"><h3 id="resultTitleA">Analisi Berman</h3><div id="resultSignalA"></div></div>
@@ -1857,13 +1840,31 @@ function syncScoreFromAI(text) {
   const valEl   = document.getElementById('scoreTotalVal');
   const lblEl   = document.getElementById('scoreTotalLabel');
   const barEl   = document.getElementById('scoreGaugeBar');
+  const card    = document.getElementById('scoreLiveCard');
+  const cardTitle = card ? card.querySelector('.card-title') : null;
   if (valEl)  { valEl.textContent = prob + '/100'; valEl.style.color = color; }
-  if (lblEl)  { lblEl.textContent = '⚡ ' + label + ' (AI)'; lblEl.style.color = color; }
+  if (lblEl)  { lblEl.textContent = label; lblEl.style.color = color; }
   if (barEl)  { barEl.style.width = prob + '%'; barEl.style.background = color; }
+  // Mostra la card solo adesso (dopo l'AI), con titolo aggiornato
+  if (card)   { card.style.display = 'block'; }
+  if (cardTitle) { cardTitle.textContent = '🎯 Verdetto Berman'; }
 }
 
 // ===== RENDER RESULT =====
 function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
+  // Rileva rifiuto AI — blocca tutto e mostra errore
+  const isRefusal = /mi dispiace|non posso assist|non posso aiut|non è possibile|unable to|I'm sorry|I cannot/i.test(text) && text.length < 400;
+  if (isRefusal) {
+    document.getElementById(contentId).innerHTML =
+      '<div style="color:#c0392b;background:#fff5f5;border:1px solid #feb2b2;border-radius:8px;padding:16px;margin-top:8px;">' +
+      '⚠️ <strong>Errore API:</strong> Il modello ha rifiutato la richiesta. Verifica che la chiave OpenAI sia valida e riprova. ' +
+      'Se il problema persiste, controlla le variabili d\'ambiente su Vercel (OPENAI_API_KEY).</div>';
+    const sigEl = document.getElementById(signalId);
+    if (sigEl) sigEl.innerHTML = '';
+    const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='none';
+    return; // non salvare nulla nella watchlist/history
+  }
+
   const fmt = text
     .replace(/## (.*)/g,'<h3>$1</h3>')
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
@@ -1892,7 +1893,6 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
     const titleEl = document.getElementById(titleId);
     const company = titleEl ? titleEl.textContent.replace('Analisi Berman — ','').replace('Analisi Comparativa Berman','').trim() || 'Azienda' : 'Azienda';
     const sector = (document.getElementById('a_sector') || {}).value || '';
-    // Extract DSI from text: look for last number after 'DSI' pattern
     const dsiMatches = text.match(/DSI[^0-9]*([0-9]+\.?[0-9]*)/gi) || [];
     const dsiLast = dsiMatches.length ? parseFloat(dsiMatches[dsiMatches.length-1].replace(/[^0-9.]/g,'')) : 0;
     const dsiTrend = text.toLowerCase().includes('dsi in calo') || text.toLowerCase().includes('inventario in calo') ? 'calo' :
@@ -1901,7 +1901,6 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
     saveToHistory(company, sector, verdict, dsiLast, dsiTrend, conviction, text);
   } catch(e) { /* history save failure is non-critical */ }
 
-  // Sincronizza il Live Berman Score gauge con il verdetto AI
   syncScoreFromAI(text);
 }
 
@@ -2457,10 +2456,15 @@ Gate superati: __/5 | Score: __/100 | Segnali concordi: __/9
 P(earnings miss nei prossimi 2 trim.): __% | P(stock move target entro 6 mesi): __%
 DSI Percentile rank (propria storia): __%ile → segnale AFFIDABILE (>85°) / MODERATO (50-85°) / DEBOLE (<50°)
 Convinzione: ALTA (tutti 5 gate + score ≥75) / MEDIA (tutti 5 gate + score 55-74) / BASSA (<5 gate) / NEUTRAL FORZATO
-4 motivazioni tecniche con numeri, probabilità e fonte del dato:
+
+**PERCHÉ QUESTO VERDETTO — spiegazione in linguaggio semplice (3-5 frasi, obbligatorie):**
+Scrivi come se spiegassi a un investitore non tecnico. Rispondi a: qual è il segnale principale? Il problema è dell'azienda o del settore intero? Cosa succederà probabilmente nei prossimi 1-2 trimestri? Qual è il rischio che invalida la tesi?
+
+**4 motivazioni tecniche (con numeri precisi dai dati forniti):**
 1. "DSI +__% YoY vs competitor +__% → divergenza __ punti → __% probabilità earnings miss entro __ trimestri."
 2. ___
 3. ___
+4. ___
 
 ## ${sec()}. SIZING, STRUMENTO E PIATTAFORMA
 - % portafoglio: _% (disciplina 4-8% medio; max 12% se convinzione ALTA + conferma multi-quarter)
@@ -2617,8 +2621,8 @@ function updateBermanScore() {
   const gm   = [...document.querySelectorAll('#tab-analyzer .gm')].map(e=>parseFloat(e.value)||0);
   const sss  = [...document.querySelectorAll('#tab-analyzer .sss')].map(e=>parseFloat(e.value)||0);
   const hasData = inv.some(v=>v>0) && (sal.some(v=>v>0)||cogs.some(v=>v>0));
-  const card = document.getElementById('scoreLiveCard');
-  card.style.display = hasData ? 'block' : 'none';
+  // La card del verdetto si mostra SOLO dopo che l'AI ha girato (via syncScoreFromAI).
+  // Il live-update aggiorna i componenti interni ma non mostra la card.
   if (!hasData) return;
 
   // DSI per quarter

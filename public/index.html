@@ -1199,7 +1199,13 @@ async function fetchEdgarData() {
   const prompt = `Sei un analista finanziario forense specializzato nel Metodo Berman (inventario retail). Raccogli TUTTI i dati disponibili per ${company || ticker} (ticker: ${ticker}) dalla tua knowledge base aggiornata (SEC EDGAR 10-Q/10-K, earnings call trascrizioni, Macrotrends, Stockanalysis, report analisti, notizie settore).
 
 Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — nessun testo prima o dopo.
-IMPORTANTE: usa la tua miglior stima per ogni campo, anche se approssimativa. Un valore approssimativo è sempre meglio di null. Usa null SOLO se non hai assolutamente nessuna informazione su quel dato. Indica le incertezze nel campo "note".
+
+REGOLA FONDAMENTALE SUI DATI — LEGGI CON ATTENZIONE:
+· Riporta SOLO valori realmente riportati nei filing 10-Q/10-K ufficiali. MAI inventare, lisciare o interpolare.
+· I dati reali sono volatili e irregolari: Nike Q4 FY2022 aveva inventario $9,682M, Q1 FY2023 sceso a $8,988M, poi $9,730M Q2 FY2023 — variazioni brusche sono CORRETTE e attese.
+· Se non hai il valore esatto di un trimestre specifico, metti null. NON inserire una stima "vicina" che sembrerebbe plausibile — preferisci null a un valore inventato.
+· La variabilità stagionale è reale: l'inventario di un retailer sale prima delle festività e scende dopo. COGS varia con le stagioni. GM% fluttua trimestre per trimestre. Dati "troppo smooth" sono un segnale che stai interpolando — non farlo.
+· Precisione: usa i valori in $M con 2 decimali (es. 9682.10, non 9682 o 9682.1).
 
 SCHEMA DA RESTITUIRE:
 {
@@ -1223,16 +1229,16 @@ SCHEMA DA RESTITUIRE:
   "store_delta_yoy_pct": null,
   "dtc_pct": null,
   "contesto_settore": "2-3 frasi sul contesto macro e settoriale attuale",
-  "periodi": ["Q1 FY2022","Q2 FY2022","Q3 FY2022","Q4 FY2022","Q1 FY2023","Q2 FY2023","Q3 FY2023","Q4 FY2023","Q1 FY2024","Q2 FY2024","Q3 FY2024","Q4 FY2024"],
-  "inventario_M": [null,null,null,null,null,null,null,null,null,null,null,null],
-  "cogs_M": [null,null,null,null,null,null,null,null,null,null,null,null],
-  "vendite_M": [null,null,null,null,null,null,null,null,null,null,null,null],
-  "gross_margin_pct": [null,null,null,null,null,null,null,null,null,null,null,null],
-  "sss_pct": [null,null,null,null,null,null,null,null,null,null,null,null],
-  "ap_M": [null,null,null,null,null,null,null,null,null,null,null,null],
-  "ocf_M": [null,null,null,null,null,null,null,null,null,null,null,null],
-  "ar_M": [null,null,null,null,null,null,null,null,null,null,null,null],
-  "net_debt_M": [null,null,null,null,null,null,null,null,null,null,null,null],
+  "periodi": ["SOSTITUISCI con i 12 trimestri fiscali reali dell'azienda in ordine cronologico, usando il VERO calendario fiscale dell'azienda (es. Nike FY termina a maggio: Q1=giu-ago, Q2=set-nov, Q3=dic-feb, Q4=mar-mag). Formato: 'Q1 FY2022'. INIZIA dal trimestre più vecchio con dati disponibili, FINISCI con l'ultimo 10-Q pubblicato."],
+  "inventario_M": ["Inventario netto dal balance sheet di ciascun 10-Q in $M con 2 decimali — MAI interpolato"],
+  "cogs_M": ["COGS trimestrale (non YTD) dall'income statement — fluttua stagionalmente, non è smooth"],
+  "vendite_M": ["Net revenues trimestrali — con stagionalità reale"],
+  "gross_margin_pct": ["GM% = (Rev - COGS) / Rev × 100 — calcola dai valori reali, 2 decimali"],
+  "sss_pct": ["Same-store sales growth % riportato dall'azienda — null se non riportato"],
+  "ap_M": ["Accounts payable dal balance sheet — istantaneo, end of quarter"],
+  "ocf_M": ["Operating cash flow trimestrale (deriva da YTD se necessario: Q2_ocf = Q2_YTD - Q1_YTD)"],
+  "ar_M": ["Accounts receivable netti dal balance sheet"],
+  "net_debt_M": ["Net debt = LT debt + ST debt - cash, dal balance sheet"],
   "competitor": [
     {"nome": "Ticker — Nome competitor 1", "dsi": null, "inv_sales": null, "gm_pct": null, "sss_pct": null},
     {"nome": "Ticker — Nome competitor 2", "dsi": null, "inv_sales": null, "gm_pct": null, "sss_pct": null},
@@ -1273,7 +1279,7 @@ REGOLE CRITICHE:
    - staff: "declining" | "normal" | "good" | ""
 5. Includi almeno 3 competitor diretti con i loro dati di inventario
 6. fonti: elenca ogni fonte usata, anche se generica ("knowledge base al [data]")
-7. PRIORITÀ DATI: usa la tua knowledge base per stimare i valori con la massima precisione possibile. Per aziende quotate USA (S&P500, Russell 1000) hai dati sufficienti per compilare la maggior parte dei campi. Preferisci sempre un valore approssimativo a null — indica l'incertezza nelle "note".`;
+7. PRIORITÀ DATI: riporta SOLO valori riportati nei filing 10-Q/10-K ufficiali o fonti primarie verificabili. Se non hai il valore esatto di un trimestre, usa null. NON inserire stime, interpolazioni o valori proporzionali — i dati reali sono volatili e irregolari, non proporzionali. Precisione: 2 decimali in $M (es. 9682.10). Un null onesto vale più di un numero inventato.`;
 
   // Helper per chiamare /api/market
   async function fetchMarketData(tick) {

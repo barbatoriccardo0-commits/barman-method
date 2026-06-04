@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -1825,8 +1824,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== SYNC BERMAN SCORE GAUGE CON VERDETTO AI =====
 function syncScoreFromAI(text) {
-  // Estrae "PROBABILITÀ LONG: XX" dall'output AI
-  const match = text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
+  // Supporta sia il nuovo "PUNTEGGIO_CICLO: XX" che il vecchio "PROBABILITÀ LONG: XX"
+  const match = text.match(/PUNTEGGIO_CICLO[:\s]+(\d+)/i) || text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
   if (!match) return;
   const prob = Math.max(1, Math.min(100, parseInt(match[1])));
 
@@ -1852,32 +1851,40 @@ function syncScoreFromAI(text) {
 
 // ===== RENDER RESULT =====
 function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
-  // Rileva rifiuto AI — blocca tutto e mostra errore
-  const isRefusal = /mi dispiace|non posso assist|non posso aiut|non è possibile|unable to|I'm sorry|I cannot/i.test(text) && text.length < 400;
+  // Rileva rifiuto AI — blocca tutto e mostra errore chiaro, nessun salvataggio
+  const isRefusal = /mi dispiace|non posso assist|non posso aiut|non posso forn|non è possibile|unable to|I'm sorry|I cannot/i.test(text) && text.length < 600;
   if (isRefusal) {
     document.getElementById(contentId).innerHTML =
       '<div style="color:#c0392b;background:#fff5f5;border:1px solid #feb2b2;border-radius:8px;padding:16px;margin-top:8px;">' +
-      '⚠️ <strong>Errore API:</strong> Il modello ha rifiutato la richiesta. Verifica che la chiave OpenAI sia valida e riprova. ' +
-      'Se il problema persiste, controlla le variabili d\'ambiente su Vercel (OPENAI_API_KEY).</div>';
+      '⚠️ <strong>Errore API:</strong> Il modello ha rifiutato la richiesta. Verifica che OPENAI_API_KEY sia valida nelle variabili d\'ambiente Vercel e riprova.</div>';
     const sigEl = document.getElementById(signalId);
     if (sigEl) sigEl.innerHTML = '';
     const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='none';
-    return; // non salvare nulla nella watchlist/history
+    return;
   }
 
+  // Mappa i label AI (VERDE/ROSSO/GIALLO) alle etichette visive
   const fmt = text
     .replace(/## (.*)/g,'<h3>$1</h3>')
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/🟢\s*VERDE/g,'<span class="signal long">✅ LONG</span>')
+    .replace(/🔴\s*ROSSO/g,'<span class="signal short">❌ SHORT</span>')
+    .replace(/🟡\s*GIALLO/g,'<span class="signal neutral">⏸ NEUTRAL</span>')
     .replace(/✅ LONG/g,'<span class="signal long">✅ LONG</span>')
     .replace(/❌ SHORT/g,'<span class="signal short">❌ SHORT</span>')
     .replace(/⏸ NEUTRAL/g,'<span class="signal neutral">⏸ NEUTRAL</span>')
     .replace(/\n/g,'<br>');
   document.getElementById(contentId).innerHTML = fmt;
+
+  // Determina il verdetto dalla risposta AI (supporta entrambi i formati)
   const sigEl = document.getElementById(signalId);
   let verdict = 'NEUTRAL';
-  if (text.includes('✅ LONG') || text.toUpperCase().includes('VERDETTO: LONG')) { sigEl.innerHTML='<span class="signal long">✅ LONG</span>'; verdict='LONG'; }
-  else if (text.includes('❌ SHORT') || text.toUpperCase().includes('VERDETTO: SHORT')) { sigEl.innerHTML='<span class="signal short">❌ SHORT</span>'; verdict='SHORT'; }
-  else sigEl.innerHTML='<span class="signal neutral">⏸ NEUTRAL</span>';
+  const hasVerde  = /🟢\s*VERDE|✅\s*LONG|VERDETTO[^a-z]*VERDE|VERDETTO[^a-z]*LONG/i.test(text);
+  const hasRosso  = /🔴\s*ROSSO|❌\s*SHORT|VERDETTO[^a-z]*ROSSO|VERDETTO[^a-z]*SHORT/i.test(text);
+  if (hasVerde && !hasRosso)       { sigEl.innerHTML='<span class="signal long">✅ LONG</span>';    verdict='LONG'; }
+  else if (hasRosso && !hasVerde)  { sigEl.innerHTML='<span class="signal short">❌ SHORT</span>';  verdict='SHORT'; }
+  else                              { sigEl.innerHTML='<span class="signal neutral">⏸ NEUTRAL</span>'; }
+
   const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='block';
 
   // Red flags semaforo
@@ -1909,8 +1916,8 @@ function renderProbMeter(text, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // Extract PROBABILITÀ LONG score from AI output
-  const match = text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
+  // Supporta sia PUNTEGGIO_CICLO che PROBABILITÀ LONG
+  const match = text.match(/PUNTEGGIO_CICLO[:\s]+(\d+)/i) || text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
   if (!match) { container.innerHTML = ''; return; }
   const score = Math.max(1, Math.min(100, parseInt(match[1])));
 
@@ -2202,9 +2209,14 @@ function buildBermanPrompt(company,ticker,sector,stores,price,pe,tableRows,comps
 
   return `Sei un analista finanziario quantitativo esperto nel Metodo Berman di analisi degli inventari retail. Metodologia validata da HBS Case 605-081 (Durban Capital) e da Gaur, Alan & Gao (Management Science, 2014): portafoglio long-short su inventario retail genera >1%/mese di rendimento anomalo su 26 anni di dati USA.
 
-REGOLA D'ORO: non guardi mai un'azienda nel vuoto. La confronti sempre con il settore e i competitor. Il verdetto finale DEVE rispondere: il problema è AZIENDALE o SETTORIALE? Se settoriale, la posizione short è pericolosa.
+REGOLA D'ORO: non guardi mai un'azienda nel vuoto. La confronti sempre con il settore e i competitor. Il verdetto finale DEVE rispondere: il problema è AZIENDALE o SETTORIALE?
 
-SOGLIA DI CONVINZIONE ASSOLUTA (aggiornata per 90%+ hit rate): emetti ✅ LONG solo se Punteggio Aggregato ≥70/100 E ≥6 segnali su 9 concordi in direzione long. Emetti ❌ SHORT solo se ≤30/100 E ≥6 segnali su 9 concordi in direzione short. In tutti gli altri casi OBBLIGATORIAMENTE: ⏸ NEUTRAL. Non esistono eccezioni. Un NEUTRAL sbagliato non perde denaro. Un LONG/SHORT sbagliato sì.
+LABEL DI OUTPUT OBBLIGATORI — usa ESCLUSIVAMENTE questi tre:
+  🟢 VERDE  = ciclo inventario positivo (scorte in normalizzazione, margini in espansione)
+  🔴 ROSSO  = ciclo inventario negativo (build-up anomalo, pressione sui margini prevista)
+  🟡 GIALLO = segnale misto o insufficiente per classificare il ciclo
+
+SOGLIA DI CONVINZIONE (90%+ hit rate): emetti 🟢 VERDE solo se Punteggio Aggregato ≥70/100 E ≥6 segnali su 9 concordi. Emetti 🔴 ROSSO solo se ≤30/100 E ≥6 segnali su 9 concordi. In tutti gli altri casi OBBLIGATORIAMENTE: 🟡 GIALLO. Non esistono eccezioni.
 
 MULTI-QUARTER CONFIRMATION (input calcolato): ${multiQConf}
 → Un segnale valido richiede ≥2 trimestri consecutivi sopra/sotto soglia. Se il segnale è mono-trimestrale, abbassi la convinzione di 10pp.
@@ -2292,13 +2304,13 @@ Verdict: "Accelerazione / Decelerazione / Inversione" con quantificazione precis
 
 **PUNTEGGIO AGGREGATO PONDERATO:**
 (DSI×2.5 + Inv/Sales×2 + SSS×1.5 + GM×1.5 + AP×0.75 + OCF×0.75 + AR×0.5 + ND×0.5 + Mgmt×0.5) / 10 = ___/100
-→ ≥70 + ≥6 segnali concordi: ✅ LONG | ≤30 + ≥6 segnali concordi: ❌ SHORT | tutto il resto: ⏸ NEUTRAL (obbligatorio)
+→ ≥70 + ≥6 segnali concordi: 🟢 VERDE | ≤30 + ≥6 segnali concordi: 🔴 ROSSO | tutto il resto: 🟡 GIALLO (obbligatorio)
 
 ## ${sec()}. FILTRO CONSENSO MULTI-SEGNALE (GATE OBBLIGATORIO prima del verdetto)
-Conta quanti dei 9 segnali della Scorecard puntano LONG (score ≥6/10) e quanti SHORT (score ≤4/10).
-Riporta: "X segnali LONG / Y segnali SHORT / Z neutrali (score 4-6)"
-REGOLA: se non hai ≥6 segnali concordi in UNA SOLA direzione → verdetto AUTOMATICAMENTE ⏸ NEUTRAL, indipendentemente dal punteggio aggregato.
-Questo filtro elimina i casi "quasi-LONG" e "quasi-SHORT" che storicamente generano il 70% degli errori.
+Conta quanti dei 9 segnali della Scorecard puntano VERDE (score ≥6/10) e quanti ROSSO (score ≤4/10).
+Riporta: "X segnali VERDE / Y segnali ROSSO / Z neutri (score 4-6)"
+REGOLA: se non hai ≥6 segnali concordi in UNA SOLA direzione → verdetto AUTOMATICAMENTE 🟡 GIALLO, indipendentemente dal punteggio aggregato.
+Questo filtro elimina i casi borderline che storicamente generano il 70% degli errori.
 
 ## ${sec()}. HIDDEN INVENTORY IMPAIRMENT CALCULATOR (Il segnale più predittivo)
 Questa è la sezione più importante dell'analisi. Quantifica la svalutazione d'inventario non ancora registrata a P&L.
@@ -2433,47 +2445,44 @@ ${hasTranscript ? `## ${sec()}. FORENSICS EARNINGS CALL\nCita 2-3 frasi specific
 
 ## ${sec()}. TESI CONTRARIA — DEVIL'S ADVOCATE (OBBLIGATORIO, minimo 5 righe)
 Costruisci il caso più forte possibile CONTRO il tuo verdetto.
-Se LONG: "Il rischio principale che invalida la tesi è ___. Trigger: ___. Probabilità: ___%."
-Se SHORT: "Il caso bull che invalida la posizione è ___. Trigger: ___. Probabilità: ___%."
-Se NEUTRAL: "Il catalizzatore che sblocca LONG è ___. Per SHORT è ___."
-Valuta anche: rischio squeeze (short interest), rischio M&A bid, rischio settore in ripresa macro rapida.
+Se 🟢 VERDE: "Il rischio principale che invalida la tesi è ___. Trigger: ___. Probabilità: ___%."
+Se 🔴 ROSSO: "Il caso positivo che invalida la classificazione è ___. Trigger: ___. Probabilità: ___%."
+Se 🟡 GIALLO: "Il catalizzatore che sblocca VERDE è ___. Per ROSSO è ___."
+Valuta anche: rischio M&A bid, rischio settore in ripresa macro rapida.
 
-## ${sec()}. RIEPILOGO 5 GATE — GO / NO-GO CHECK (tutti devono essere PASS per LONG o SHORT)
+## ${sec()}. RIEPILOGO 5 GATE — GO / NO-GO CHECK
 
 | Gate | Condizione | Risultato |
 |------|-----------|-----------|
-| Gate 1 — Punteggio | Score ≥70 (LONG) o ≤30 (SHORT) | PASS / FAIL |
+| Gate 1 — Punteggio | Score ≥70 (VERDE) o ≤30 (ROSSO) | PASS / FAIL |
 | Gate 2 — Consenso segnali | ≥6/9 segnali concordi in una direzione | PASS / FAIL |
 | Gate 3 — Multi-quarter | Segnale confermato ≥2 trimestri consecutivi | PASS / FAIL |
 | Gate 4 — Alpha residuo | Revisioni analisti NON già incorporate (≤2 ribasso) | PASS / FAIL |
 | Gate 5 — Timing | 14-70 giorni a earnings | PASS / FAIL |
 
-Se anche UN SOLO gate è FAIL → verdetto OBBLIGATORIAMENTE ⏸ NEUTRAL.
-Questo meccanismo a 5 gate è la differenza tra 70% e 90%+ di hit rate.
+Se anche UN SOLO gate è FAIL → verdetto OBBLIGATORIAMENTE 🟡 GIALLO.
 
-## ${sec()}. VERDETTO FINALE: ✅ LONG | ❌ SHORT | ⏸ NEUTRAL
+## ${sec()}. VERDETTO FINALE: 🟢 VERDE | 🔴 ROSSO | 🟡 GIALLO
 Gate superati: __/5 | Score: __/100 | Segnali concordi: __/9
-P(earnings miss nei prossimi 2 trim.): __% | P(stock move target entro 6 mesi): __%
+P(earnings miss nei prossimi 2 trim.): __% | P(variazione prezzo attesa entro 6 mesi): __%
 DSI Percentile rank (propria storia): __%ile → segnale AFFIDABILE (>85°) / MODERATO (50-85°) / DEBOLE (<50°)
-Convinzione: ALTA (tutti 5 gate + score ≥75) / MEDIA (tutti 5 gate + score 55-74) / BASSA (<5 gate) / NEUTRAL FORZATO
+Convinzione: ALTA (tutti 5 gate + score ≥75) / MEDIA (tutti 5 gate + score 55-74) / BASSA (<5 gate) / GIALLO FORZATO
 
-**PERCHÉ QUESTO VERDETTO — spiegazione in linguaggio semplice (3-5 frasi, obbligatorie):**
-Scrivi come se spiegassi a un investitore non tecnico. Rispondi a: qual è il segnale principale? Il problema è dell'azienda o del settore intero? Cosa succederà probabilmente nei prossimi 1-2 trimestri? Qual è il rischio che invalida la tesi?
+**PERCHÉ QUESTO VERDETTO — spiegazione semplice (3-5 frasi obbligatorie):**
+Spiega in modo chiaro: qual è il segnale principale? Il problema è aziendale o settoriale? Cosa succederà nei prossimi 1-2 trimestri? Qual è il rischio che invalida la tesi?
 
-**4 motivazioni tecniche (con numeri precisi dai dati forniti):**
+**4 motivazioni tecniche con numeri precisi:**
 1. "DSI +__% YoY vs competitor +__% → divergenza __ punti → __% probabilità earnings miss entro __ trimestri."
 2. ___
 3. ___
 4. ___
 
-## ${sec()}. SIZING, STRUMENTO E PIATTAFORMA
-- % portafoglio: _% (disciplina 4-8% medio; max 12% se convinzione ALTA + conferma multi-quarter)
-- Strumento: azioni / CFD long-short / put options — motivazione (se short interest >15% → put obbligatorie)
-- Piattaforma: Interactive Brokers / Saxo / eToro — motivazione operativa
-- Timing impatto EPS: __ trimestri
-- Stop loss: trigger preciso (es. "se DSI YoY torna sotto +10% per 2 trimestri consecutivi → chiudi")
-- Target price se tesi corretta: $__ (metodo: __x EPS normalizzato stimato)
-- Risk/Reward: __:1
+## ${sec()}. TIMING E PARAMETRI DI RISCHIO
+- Finestra temporale attesa per la tesi: __ trimestri
+- Condizione di invalidazione: trigger numerico preciso (es. "se DSI YoY torna sotto +10% per 2 trimestri → segnale non più valido")
+- Target price stimato se tesi corretta: $__ (metodo: __x EPS normalizzato)
+- Risk/Reward stimato: __:1
+- Allocazione massima suggerita: __% (in base a convinzione: ALTA=8-12%, MEDIA=4-8%, BASSA=2-4%)
 
 ## ${sec()}. MONITOR 10-Q PROSSIMO TRIMESTRE
 3 KPI con soglie precise da controllare appena esce il filing:
@@ -2487,11 +2496,11 @@ Rispondi in italiano. Massima densità. Ogni numero calcolato dai dati forniti, 
 ═══════════════════════════════════════════
 RIGA FINALE OBBLIGATORIA (ultima riga, nessun testo dopo)
 ═══════════════════════════════════════════
-PROBABILITÀ LONG: [numero da 1 a 100]
+PUNTEGGIO_CICLO: [numero da 1 a 100]
 
-Scala: 1 = certezza assoluta SHORT | 35 = soglia SHORT/NEUTRAL | 50 = perfetto equilibrio | 65 = soglia NEUTRAL/LONG | 100 = certezza assoluta LONG
+Scala: 1 = ciclo molto negativo (🔴 ROSSO forte) | 35 = soglia ROSSO/GIALLO | 50 = equilibrio | 65 = soglia GIALLO/VERDE | 100 = ciclo molto positivo (🟢 VERDE forte)
 Questo numero deve essere coerente con il verdetto e con il punteggio aggregato.
-Esempi: score 22/100 → PROBABILITÀ LONG: 18 | score 74/100 → PROBABILITÀ LONG: 72 | score 51/100 → PROBABILITÀ LONG: 51`;
+Esempi: score 22/100 → PUNTEGGIO_CICLO: 18 | score 74/100 → PUNTEGGIO_CICLO: 72 | score 51/100 → PUNTEGGIO_CICLO: 51`;
 }
 
 // ===== UPLOAD ANALYSIS =====
@@ -2855,7 +2864,11 @@ function addToWatchlistFromResult(titleId, signalId) {
   const titleEl = document.getElementById(titleId);
   const sigEl = document.getElementById(signalId);
   const company = titleEl ? titleEl.textContent.replace('Analisi Berman — ','').replace('Analisi Comparativa Berman — ','').trim() || 'Azienda' : 'Azienda';
-  const sigText = sigEl ? sigEl.innerText : '';
+  if (!sigEl || !sigEl.innerText.trim()) {
+    alert('⚠️ Nessun verdetto disponibile. Esegui prima l\'analisi.');
+    return;
+  }
+  const sigText = sigEl.innerText;
   const verdict = sigText.includes('LONG') ? 'LONG' : sigText.includes('SHORT') ? 'SHORT' : 'NEUTRAL';
   const entry = {
     company,

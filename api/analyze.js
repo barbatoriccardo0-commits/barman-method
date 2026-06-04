@@ -1,4 +1,3 @@
-
 // Vercel Serverless Function — Metodo Berman
 // Usa Anthropic Claude (no filtri su analisi finanziarie strutturate).
 // Fallback automatico su OpenAI se ANTHROPIC_API_KEY non configurata.
@@ -166,4 +165,3 @@ REGOLE OPERATIVE — TASSATIVE:
     return res.status(500).json({ error: e.message || 'Errore interno.' });
   }
 };
- 

@@ -1,18 +1,18 @@
 // Vercel Serverless Function — SEC EDGAR XBRL (server-side, bypassa CORS + User-Agent)
 // v3: aggrega TUTTI i tag XBRL in un pool unico, prende i 12 TRIMESTRI PIÙ RECENTI.
 // Risolve il problema dati storici (2010) quando la company cambia tag nel tempo.
- 
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
- 
+
   const ticker = (req.query.ticker || '').trim().toUpperCase();
   if (!ticker) return res.status(400).json({ error: 'ticker mancante' });
- 
+
   const UA = 'MetodoBerman/1.0 riccardobarbato27@gmail.com';
- 
+
   try {
     // ── 1. CIK dal ticker ──────────────────────────────────────────────────
     const r1 = await fetch('https://www.sec.gov/files/company_tickers.json', {
@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
     });
     if (!r1.ok) return res.status(502).json({ error: `SEC tickers HTTP ${r1.status}` });
     const tMap = await r1.json();
- 
+
     let cik = null;
     for (const k of Object.keys(tMap)) {
       if ((tMap[k].ticker || '').toUpperCase() === ticker) {
@@ -29,19 +29,19 @@ module.exports = async function handler(req, res) {
       }
     }
     if (!cik) return res.status(404).json({ error: `CIK non trovato per ${ticker}` });
- 
+
     // ── 2. Company facts XBRL ─────────────────────────────────────────────
     const r2 = await fetch(`https://data.sec.gov/api/xbrl/companyfacts/CIK${cik}.json`, {
       headers: { 'User-Agent': UA }
     });
     if (!r2.ok) return res.status(502).json({ error: `SEC facts HTTP ${r2.status}` });
     const facts = await r2.json();
- 
+
     const gaap = facts.facts?.['us-gaap'];
     if (!gaap) return res.status(404).json({ error: 'Nessun dato us-gaap per ' + ticker });
- 
+
     // ── 3. Helpers ─────────────────────────────────────────────────────────
- 
+
     // getQ: aggrega TUTTI i tag candidati in un unico pool, poi prende i 12 più recenti.
     // Per item duration (income statement, con x.start): filtra a ~3 mesi (Q trimestrale puro).
     // Per item instant (balance sheet, senza x.start): passa sempre.
@@ -68,7 +68,7 @@ module.exports = async function handler(req, res) {
         .sort((a, b) => new Date(a.end) - new Date(b.end));
       return sorted.length >= 2 ? sorted : [];
     }
- 
+
     // getQFromYTD: per item che sono sempre YTD (OCF, COGS se non disponibili trimestrali).
     // Aggrega tutti i tag, poi per ogni fiscal year deriva i valori trimestrali per differenza.
     function getQFromYTD(tags) {
@@ -85,14 +85,14 @@ module.exports = async function handler(req, res) {
           if (!byFYFP[key] || x.filed > byFYFP[key].filed) byFYFP[key] = x;
         }
       }
- 
+
       // Raggruppa per fiscal year
       const byFY = {};
       for (const x of Object.values(byFYFP)) {
         if (!byFY[x.fy]) byFY[x.fy] = [];
         byFY[x.fy].push(x);
       }
- 
+
       // Per ogni FY calcola i valori trimestrali per differenza YTD
       const quarterly = [];
       for (const fy of Object.keys(byFY).sort()) {
@@ -106,14 +106,14 @@ module.exports = async function handler(req, res) {
           quarterly.push({ fy: x.fy, fp: x.fp, end: x.end, filed: x.filed, val: qVal });
         }
       }
- 
+
       const sorted = quarterly
-        .sort((b, a) => new Date(b.end) - new Date(a.end))  // descending
+        .sort((a, b) => new Date(b.end) - new Date(a.end))  // descending → più recenti per primi
         .slice(0, 12)
-        .sort((a, b) => new Date(a.end) - new Date(b.end)); // back to ascending
+        .sort((a, b) => new Date(a.end) - new Date(b.end)); // back to ascending cronologico
       return sorted.length >= 2 ? sorted : [];
     }
- 
+
     // Variante per EPS (unità USD/shares) — aggrega tutti i tag
     function getQPerShare(tags) {
       const pool = {};
@@ -136,7 +136,7 @@ module.exports = async function handler(req, res) {
         .sort((a, b) => new Date(a.end) - new Date(b.end))
         .slice(-12);
     }
- 
+
     // Variante per shares outstanding (unità shares)
     function getQShares(tags) {
       const pool = {};
@@ -153,13 +153,13 @@ module.exports = async function handler(req, res) {
         .sort((a, b) => new Date(a.end) - new Date(b.end))
         .slice(-4);
     }
- 
+
     // ── 4. Estrai ogni metrica ─────────────────────────────────────────────
     const inv = getQ([
       'InventoryNet','Inventories','InventoriesNet',
       'InventoryFinishedGoods','InventoryFinishedGoodsNetOfReserves',
     ]);
- 
+
     // COGS: prova trimestrale diretto, fallback YTD-diff
     let cogs = getQ([
       'CostOfRevenue','CostOfGoodsSold','CostOfGoodsAndServicesSold',
@@ -168,7 +168,7 @@ module.exports = async function handler(req, res) {
     if (cogs.length < 2) cogs = getQFromYTD([
       'CostOfRevenue','CostOfGoodsSold','CostOfGoodsAndServicesSold',
     ]);
- 
+
     // Revenues: prova trimestrale diretto, fallback YTD-diff
     let rev = getQ([
       'Revenues','SalesRevenueNet','NetRevenues',
@@ -182,50 +182,50 @@ module.exports = async function handler(req, res) {
       'RevenueFromContractWithCustomerExcludingAssessedTax',
       'RevenueFromContractWithCustomerIncludingAssessedTax',
     ]);
- 
+
     const gp = getQ(['GrossProfit','GrossProfitLoss']);
- 
+
     const ap = getQ([
       'AccountsPayableCurrent','AccountsPayable',
       'AccountsPayableAndAccruedLiabilitiesCurrent',
       'AccountsPayableRelatedPartiesCurrent',
     ]);
- 
+
     // OCF: sempre YTD nel cash flow → usa YTD-diff
     const ocf = getQFromYTD([
       'NetCashProvidedByUsedInOperatingActivities',
       'NetCashProvidedByOperatingActivities',
       'NetCashFromOperatingActivities',
     ]);
- 
+
     const ar = getQ([
       'AccountsReceivableNetCurrent','ReceivablesNetCurrent',
       'AccountsReceivableNet','TradeReceivablesNetCurrent',
       'AccountsReceivableGrossCurrent',
     ]);
- 
+
     const debtLT = getQ([
       'LongTermDebt','LongTermDebtNoncurrent',
       'LongTermDebtAndCapitalLeaseObligations',
       'LongTermNotesPayable','LongTermDebtCurrent',
     ]);
- 
+
     const debtST = getQ([
       'ShortTermBorrowings','CommercialPaper',
       'NotesPayableToBanksCurrent','ShortTermDebt',
       'LinesOfCredit',
     ]);
- 
+
     const cashArr = getQ([
       'CashAndCashEquivalentsAtCarryingValue',
       'CashAndCashEquivalents','Cash',
       'CashCashEquivalentsAndShortTermInvestments',
       'CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents',
     ]);
- 
+
     const epsArr    = getQPerShare(['EarningsPerShareDiluted','EarningsPerShareBasic']);
     const sharesArr = getQShares(['CommonStockSharesOutstanding','CommonStockSharesIssued']);
- 
+
     // ── 5. Sceglie il riferimento temporale ───────────────────────────────
     // Prende la serie con più dati recenti. Preferisce inventario, poi ricavi.
     function mostRecentEnd(arr) {
@@ -242,13 +242,13 @@ module.exports = async function handler(req, res) {
       ref = rev;
     }
     if (!ref) return res.status(404).json({ error: 'Dati insufficienti per ' + ticker });
- 
+
     // ── 6. Allineamento fy+fp ─────────────────────────────────────────────
     function lookup(arr, item) {
       const m = arr.find(d => d.fp === item.fp && d.fy === item.fy);
-      return (m !== undefined && m !== null) ? +(m.val / 1e6).toFixed(1) : null;
+      return (m !== undefined && m !== null) ? +(m.val / 1e6).toFixed(2) : null;
     }
- 
+
     const periodi = ref.map(d => `${d.fp} FY${d.fy}`);
     const inv_M   = ref.map(d => lookup(inv,  d));
     const cogs_M  = ref.map(d => lookup(cogs, d));
@@ -256,22 +256,22 @@ module.exports = async function handler(req, res) {
     const ap_M    = ref.map(d => lookup(ap,   d));
     const ocf_M   = ref.map(d => lookup(ocf,  d));
     const ar_M    = ref.map(d => lookup(ar,   d));
- 
+
     const gm_pct = ref.map(d => {
       const r = lookup(rev, d);
       const g = lookup(gp,  d);
       const c = lookup(cogs, d);
-      if (g !== null && r) return +((g / r) * 100).toFixed(1);
-      if (r && c !== null) return +((1 - c / r) * 100).toFixed(1);
+      if (g !== null && r) return +((g / r) * 100).toFixed(2);
+      if (r && c !== null) return +((1 - c / r) * 100).toFixed(2);
       return null;
     });
- 
+
     const nd_M = ref.map(d => {
       const lt = lookup(debtLT, d), st = lookup(debtST, d), c = lookup(cashArr, d);
       if (lt === null && st === null) return null;
-      return +(((lt || 0) + (st || 0) - (c || 0))).toFixed(1);
+      return +(((lt || 0) + (st || 0) - (c || 0))).toFixed(2);
     });
- 
+
     // EPS (già in $/share — non dividere per 1e6)
     const eps_all = ref.map(d => {
       const m = epsArr.find(e => e.fp === d.fp && e.fy === d.fy);
@@ -279,11 +279,11 @@ module.exports = async function handler(req, res) {
     });
     const last4eps = eps_all.filter(v => v !== null).slice(-4);
     while (last4eps.length < 4) last4eps.unshift(null);
- 
+
     const latestShares = sharesArr.length
       ? +(sharesArr[sharesArr.length - 1].val / 1e6).toFixed(1)
       : null;
- 
+
     return res.status(200).json({
       cik,
       periodi,
@@ -298,7 +298,7 @@ module.exports = async function handler(req, res) {
       eps_4q: last4eps,
       latestShares,
     });
- 
+
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore interno sec.js' });
   }

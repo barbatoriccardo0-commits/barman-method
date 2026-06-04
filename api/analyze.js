@@ -30,8 +30,17 @@ async function checkRateLimit(ip) {
 
 // ── Rileva rifiuto nel testo risposta ─────────────────────────────────────
 function isRefusal(text) {
-  if (!text || text.length > 800) return false;
-  return /mi dispiace|non posso assist|non posso aiut|non posso forn|non è possibile|unable to assist|I'm sorry|I cannot help/i.test(text);
+  if (!text) return true;
+  // Risposta molto corta con frasi di rifiuto = rifiuto certo
+  if (text.length < 200) return /mi dispiace|non posso assist|non posso aiut|non posso forn|non è possibile|unable to assist|I'm sorry|I cannot help/i.test(text);
+  // Risposta media: rifiuto solo se non contiene contenuto analitico
+  if (text.length < 600) {
+    const hasRefusal = /mi dispiace|non posso assist|non posso aiut|non posso forn|non è possibile|unable to assist|I'm sorry|I cannot help/i.test(text);
+    const hasAnalysis = /DSI|inventario|COGS|PUNTEGGIO|VERDE|ROSSO|GIALLO|margine|scorecard/i.test(text);
+    return hasRefusal && !hasAnalysis;
+  }
+  // Risposta lunga = analisi legittima anche se contiene scuse contestuali
+  return false;
 }
 
 // ── Chiama OpenAI ──────────────────────────────────────────────────────────
@@ -45,7 +54,7 @@ async function callOpenAI(apiKey, model, systemPrompt, userContent) {
     body: JSON.stringify({
       model: model || 'gpt-4o',
       max_tokens: 4096,
-      temperature: 0.2,
+      temperature: 0,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user',   content: userContent  },
@@ -72,6 +81,7 @@ async function callAnthropic(apiKey, model, systemPrompt, userContent) {
     body: JSON.stringify({
       model: model || 'claude-sonnet-4-6',
       max_tokens: 8192,
+      temperature: 0,
       system: systemPrompt,
       messages: [{ role: 'user', content: userContent }],
     }),

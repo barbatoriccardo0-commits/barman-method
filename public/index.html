@@ -98,6 +98,8 @@ tr:hover td{background:#f8faff;}
 .intel-btn:disabled{opacity:.6;cursor:not-allowed;}
 .monitor-btn{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:7px;padding:10px 20px;font-size:13px;font-weight:700;color:#166534;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s;margin-top:10px;}
 .monitor-btn:hover{background:linear-gradient(135deg,#dcfce7,#bbf7d0);}
+.toggle-detail-btn{background:#f0f4ff;border:1px solid #bfdbfe;border-radius:7px;padding:11px 18px;font-size:13px;font-weight:700;color:#1e40af;cursor:pointer;width:100%;margin-top:20px;text-align:left;transition:all .2s;display:block;}
+.toggle-detail-btn:hover{background:#dbeafe;border-color:#93c5fd;}
 
 /* DROP ZONES */
 .drop-zone{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfd;}
@@ -1838,7 +1840,7 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
     return;
   }
 
-  // Mappa i label AI (VERDE/ROSSO/GIALLO) alle etichette visive
+  // Formatta il testo AI
   const fmt = text
     .replace(/## (.*)/g,'<h3>$1</h3>')
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
@@ -1849,7 +1851,23 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
     .replace(/❌ SHORT/g,'<span class="signal short">❌ SHORT</span>')
     .replace(/⏸ NEUTRAL/g,'<span class="signal neutral">⏸ NEUTRAL</span>')
     .replace(/\n/g,'<br>');
-  document.getElementById(contentId).innerHTML = fmt;
+
+  // Separa riepilogo semplice (sempre visibile) da analisi tecnica (collassabile)
+  const TECH_SEP = '━━━ ANALISI TECNICA COMPLETA ━━━';
+  const sepIdx = fmt.indexOf(TECH_SEP);
+  const simpleHtml = sepIdx > 0 ? fmt.slice(0, sepIdx) : fmt;
+  const techHtml   = sepIdx > 0 ? fmt.slice(sepIdx + TECH_SEP.length) : '';
+  document.getElementById(contentId).innerHTML = simpleHtml + (techHtml
+    ? `<div style="margin-top:20px;">
+        <button class="toggle-detail-btn" onclick="
+          var d=this.nextElementSibling;
+          var open=d.style.display!=='none';
+          d.style.display=open?'none':'block';
+          this.textContent=open?'📊 Mostra analisi tecnica dettagliata ▼':'📊 Nascondi analisi tecnica ▲';
+        ">📊 Mostra analisi tecnica dettagliata ▼</button>
+        <div style="display:none;margin-top:14px;">${techHtml}</div>
+      </div>`
+    : '');
 
   // Verdetto: usa PUNTEGGIO_CICLO (ultima riga, sempre univoco) come fonte primaria
   const sigEl = document.getElementById(signalId);
@@ -1905,12 +1923,13 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
       if (vlEl) { vlEl.textContent = aiLabel; vlEl.style.color = aiColor; }
 
       // Estrai "PERCHÉ QUESTO VERDETTO" dal testo AI
-      const whyMatch = text.match(/PERCH[ÉE][^\n]*\n([\s\S]*?)(?:\*\*4 motivazioni|##\s|\n═|$)/i);
+      const whyMatch = text.match(/PERCH[ÉE][^\n]*\n([\s\S]*?)(?:\*\*4 segnali|\*\*4 motivazioni|##\s|\n═|$)/i);
       const why = whyMatch ? whyMatch[1].replace(/\*\*/g,'').replace(/^\s*[-–]\s*/gm,'').trim() : '';
       if (why) vwEl.textContent = why;
 
       // Estrai 4 motivazioni tecniche
-      const motMatch = text.match(/4 motivazioni[^\n]*\n([\s\S]*?)(?:##\s|\n═|TIMING|$)/i);
+      const motMatch = text.match(/4 segnali principali[^\n]*\n([\s\S]*?)(?:Rischio principale|##\s|\n━|$)/i)
+                    || text.match(/4 motivazioni[^\n]*\n([\s\S]*?)(?:##\s|\n═|TIMING|$)/i);
       if (motMatch && vmEl) {
         const motivations = motMatch[1].trim()
           .split('\n').filter(l => l.trim() && /^\d|^[-–•]/.test(l.trim()))
@@ -2251,10 +2270,6 @@ async function runManualAnalysis() {
   document.getElementById('resultTitleA').textContent=`Analisi Berman — ${company} (${ticker})`;
   rb.scrollIntoView({behavior:'smooth',block:'start'});
 
-  // Mostra subito il verdetto quantitativo JS come placeholder mentre l'AI elabora
-  const jsResult = computeBermanScore();
-  if (jsResult) showJsVerdictCard(jsResult);
-
   const prompt = buildBermanPrompt(company, ticker, sector, stores, price, pe, tableRows, comps, intel, transcript, mgmt, context, yoyRows, apRows, ocfRows, dataQuality, arRows, ndRows, d2dsiStr, multiQConf, channelCheck, valuationStr, hiddenImpairmentStr, gmNormal, epsCons, shares, revMomentumStr, storeNormStr, timingStr, dtcStr, dsiPctStr, mgmtMisses);
   try {
     const r = await callAI(prompt);
@@ -2335,6 +2350,25 @@ ${channelCheck ? `CHANNEL CHECK (osservazione qualitativa): ${channelCheck}\n` :
 STRUTTURA RISPOSTA OBBLIGATORIA
 (parti immediatamente, zero preamboli)
 ═══════════════════════════════════════════
+
+## VERDETTO BERMAN
+[Scrivi questa sezione PER PRIMA, prima di qualsiasi analisi tecnica]
+
+**Verdetto:** 🟢 VERDE / 🔴 ROSSO / 🟡 GIALLO
+
+**PERCHÉ QUESTO VERDETTO:**
+Spiega in 3-5 frasi semplici, senza tecnicismi, cosa sta succedendo all'azienda e perché è un segnale positivo/negativo/neutro. Come lo spiegheresti a qualcuno che non conosce la finanza. Nessun acronimo, nessuna formula.
+
+**4 segnali principali:**
+1. [Cosa sta succedendo in parole semplici] (numero preciso tra parentesi, es. "+34% scorte YoY")
+2. ___
+3. ___
+4. ___
+
+**Rischio principale:**
+In una frase semplice: cosa renderebbe sbagliata questa previsione?
+
+━━━ ANALISI TECNICA COMPLETA ━━━
 
 ## ${sec()}. TABELLA COMPARATIVA SETTORIALE
 | Azienda | DSI (gg) | YoY DSI Δ% | Inv/Sales | GM% | SSS% | AP Trend | Giudizio |
@@ -2523,20 +2557,12 @@ Valuta anche: rischio M&A bid, rischio settore in ripresa macro rapida.
 
 Se anche UN SOLO gate è FAIL → verdetto OBBLIGATORIAMENTE 🟡 GIALLO.
 
-## ${sec()}. VERDETTO FINALE: 🟢 VERDE | 🔴 ROSSO | 🟡 GIALLO
+## ${sec()}. RIEPILOGO QUANTITATIVO
 Gate superati: __/5 | Score: __/100 | Segnali concordi: __/9
 P(earnings miss nei prossimi 2 trim.): __% | P(variazione prezzo attesa entro 6 mesi): __%
-DSI Percentile rank (propria storia): __%ile → segnale AFFIDABILE (>85°) / MODERATO (50-85°) / DEBOLE (<50°)
+DSI Percentile rank (propria storia): __%ile → AFFIDABILE (>85°) / MODERATO (50-85°) / DEBOLE (<50°)
 Convinzione: ALTA (tutti 5 gate + score ≥75) / MEDIA (tutti 5 gate + score 55-74) / BASSA (<5 gate) / GIALLO FORZATO
-
-**PERCHÉ QUESTO VERDETTO — spiegazione semplice (3-5 frasi obbligatorie):**
-Spiega in modo chiaro: qual è il segnale principale? Il problema è aziendale o settoriale? Cosa succederà nei prossimi 1-2 trimestri? Qual è il rischio che invalida la tesi?
-
-**4 motivazioni tecniche con numeri precisi:**
-1. "DSI +__% YoY vs competitor +__% → divergenza __ punti → __% probabilità earnings miss entro __ trimestri."
-2. ___
-3. ___
-4. ___
+Verdetto finale: 🟢 VERDE / 🔴 ROSSO / 🟡 GIALLO
 
 ## ${sec()}. TIMING E PARAMETRI DI RISCHIO
 - Finestra temporale attesa per la tesi: __ trimestri

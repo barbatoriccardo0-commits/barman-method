@@ -1869,15 +1869,10 @@ function syncScoreFromAI(text) {
 
 // ===== RENDER RESULT =====
 function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
-  // Rileva rifiuto AI — blocca tutto e mostra errore chiaro, nessun salvataggio
+  // Rileva rifiuto AI — lascia visibile il verdetto quantitativo JS, nessun banner di errore
   const isRefusal = /mi dispiace|non posso assist|non posso aiut|non posso forn|non è possibile|unable to|I'm sorry|I cannot/i.test(text) && text.length < 600;
   if (isRefusal) {
-    document.getElementById(contentId).innerHTML =
-      '<div style="color:#c0392b;background:#fff5f5;border:1px solid #feb2b2;border-radius:8px;padding:16px;margin-top:8px;">' +
-      '⚠️ <strong>Errore API:</strong> Il modello ha rifiutato la richiesta. Verifica che OPENAI_API_KEY sia valida nelle variabili d\'ambiente Vercel e riprova.</div>';
-    const sigEl = document.getElementById(signalId);
-    if (sigEl) sigEl.innerHTML = '';
-    const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='none';
+    const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='block';
     return;
   }
 

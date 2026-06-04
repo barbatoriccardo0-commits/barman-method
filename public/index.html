@@ -1174,16 +1174,24 @@ async function runFullAnalysis() {
   if (!ticker) { alert('Inserisci un ticker.'); return; }
 
   const loadingMsg = document.getElementById('edgarLoadingMsg');
-  if (loadingMsg) loadingMsg.textContent = 'Passo 1/2 — Recupero dati SEC EDGAR e AI...';
 
-  // Step 1: load data into the form
+  // Step 1: carica dati nel form
+  if (loadingMsg) loadingMsg.textContent = 'Passo 1/2 — Recupero dati SEC EDGAR...';
   await fetchEdgarData();
 
-  // Step 2: run AI analysis
+  // Step 2: mostra subito il verdetto quantitativo (JS, indipendente dall'AI)
+  const jsResult = computeBermanScore();
+  if (jsResult) {
+    showJsVerdictCard(jsResult);
+    const resultBox = document.getElementById('resultBoxA');
+    if (resultBox) resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Step 3: chiama l'AI per la spiegazione dettagliata
   if (loadingMsg) loadingMsg.textContent = 'Passo 2/2 — Analisi AI in corso...';
   await runManualAnalysis();
 
-  // Scroll to result
+  // Scroll finale al risultato
   const resultBox = document.getElementById('resultBoxA');
   if (resultBox) resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -1905,42 +1913,29 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
 
   const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='block';
 
-  // ── VERDETTO CARD ─────────────────────────────────────────────────────────
-  const vcId   = contentId === 'resultContentA' ? 'verdictCardA' : null;
-  const vlId   = contentId === 'resultContentA' ? 'verdictLabelA' : null;
-  const vwId   = contentId === 'resultContentA' ? 'verdictWhyA' : null;
-  const vmId   = contentId === 'resultContentA' ? 'verdictMotivationsA' : null;
-  const vc = vcId ? document.getElementById(vcId) : null;
-  if (vc) {
-    // Colori e label
-    const cfg = {
-      LONG:    { bg:'#f0fdf4', border:'#16a34a', color:'#15803d', label:'✅ LONG' },
-      SHORT:   { bg:'#fff5f5', border:'#c0392b', color:'#c0392b', label:'❌ SHORT' },
-      NEUTRAL: { bg:'#fffbeb', border:'#d97706', color:'#b45309', label:'⏸ NEUTRAL' },
-    };
-    const c = cfg[verdict] || cfg.NEUTRAL;
-    vc.style.background    = c.bg;
-    vc.style.borderColor   = c.border;
-    document.getElementById(vlId).textContent  = c.label;
-    document.getElementById(vlId).style.color  = c.color;
+  // ── ARRICCHISCI VERDETTO CARD CON SPIEGAZIONE AI ─────────────────────────
+  if (contentId === 'resultContentA') {
+    const vc  = document.getElementById('verdictCardA');
+    const vwEl = document.getElementById('verdictWhyA');
+    const vmEl = document.getElementById('verdictMotivationsA');
+    if (vc && vwEl) {
+      // Estrai "PERCHÉ QUESTO VERDETTO" dal testo AI
+      const whyMatch = text.match(/PERCH[ÉE][^\n]*\n([\s\S]*?)(?:\*\*4 motivazioni|##\s|\n═|$)/i);
+      const why = whyMatch ? whyMatch[1].replace(/\*\*/g,'').replace(/^\s*[-–]\s*/gm,'').trim() : '';
+      if (why) vwEl.textContent = why;
 
-    // Estrai sezione "PERCHÉ QUESTO VERDETTO" dal testo AI
-    const whyMatch = text.match(/PERCH[ÉE][^:\n]*:?([\s\S]*?)(?:\*\*4 motivazioni|##|\n═|$)/i);
-    const why = whyMatch ? whyMatch[1].replace(/\*\*/g,'').replace(/^\s*[-–]\s*/gm,'').trim() : '';
-
-    // Estrai le 4 motivazioni tecniche
-    const motMatch = text.match(/\*\*4 motivazioni[^*]*\*\*\s*([\s\S]*?)(?:##|\n═|$)/i);
-    let motivations = '';
-    if (motMatch) {
-      motivations = motMatch[1].trim()
-        .split('\n').filter(l => l.trim())
-        .map(l => `<div style="margin-bottom:6px;padding-left:12px;border-left:3px solid ${c.border};">${l.trim().replace(/^\d+\.\s*/,'')}</div>`)
-        .join('');
+      // Estrai 4 motivazioni tecniche
+      const motMatch = text.match(/4 motivazioni[^\n]*\n([\s\S]*?)(?:##\s|\n═|TIMING|$)/i);
+      if (motMatch && vmEl) {
+        const borderColor = vc.style.borderColor || '#888';
+        const motivations = motMatch[1].trim()
+          .split('\n').filter(l => l.trim() && /^\d|^[-–•]/.test(l.trim()))
+          .map(l => `<div style="margin-bottom:6px;padding-left:12px;border-left:3px solid ${borderColor};">${l.replace(/^\d+\.\s*|^[-–•]\s*/,'')}</div>`)
+          .join('');
+        if (motivations) vmEl.innerHTML = motivations;
+      }
+      vc.style.display = 'block';
     }
-
-    document.getElementById(vwId).textContent = why || 'Vedi analisi completa sopra.';
-    document.getElementById(vmId).innerHTML   = motivations;
-    vc.style.display = 'block';
   }
 
   // Red flags semaforo
@@ -2678,17 +2673,15 @@ ${compFiles.map((cf,i)=>`\nDATI GREZZI ${cf.name}:\n${cf.content.substring(0,150
   } catch(e) { ld2.style.display='none'; rc.innerHTML=`<span style="color:var(--red);">Errore: ${e.message||'Riprova'}</span>`; }
 }
 
-// ===== LIVE BERMAN SCORE =====
-function updateBermanScore() {
+// ===== CALCOLO BERMAN SCORE (puro, nessun DOM) =====
+function computeBermanScore() {
   const inv  = [...document.querySelectorAll('#tab-analyzer .inv')].map(e=>parseFloat(e.value)||0);
   const cogs = [...document.querySelectorAll('#tab-analyzer .cogs')].map(e=>parseFloat(e.value)||0);
   const sal  = [...document.querySelectorAll('#tab-analyzer .sales')].map(e=>parseFloat(e.value)||0);
   const gm   = [...document.querySelectorAll('#tab-analyzer .gm')].map(e=>parseFloat(e.value)||0);
   const sss  = [...document.querySelectorAll('#tab-analyzer .sss')].map(e=>parseFloat(e.value)||0);
   const hasData = inv.some(v=>v>0) && (sal.some(v=>v>0)||cogs.some(v=>v>0));
-  // La card del verdetto si mostra SOLO dopo che l'AI ha girato (via syncScoreFromAI).
-  // Il live-update aggiorna i componenti interni ma non mostra la card.
-  if (!hasData) return;
+  if (!hasData) return null;
 
   // DSI per quarter
   const dsi = inv.map((v,i)=>cogs[i]>0?v/cogs[i]*90:0);
@@ -2807,48 +2800,69 @@ function updateBermanScore() {
     (sssScore/15*15) + (velScore/15*10) + (apScore/10*10) + (ocfScore/10*10) + arScore + ndScore;
   const total = Math.round(rawTotal / 105 * 100);
 
-  let color,label;
-  if (total>=75){color='var(--green)';label='STRONG LONG 🟢';}
-  else if(total>=65){color='var(--green)';label='LONG 🟢';}
-  else if(total>=36){color='var(--yellow)';label='NEUTRAL ⏸';}
-  else if(total>=25){color='var(--red)';label='SHORT 🔴';}
-  else{color='var(--red)';label='STRONG SHORT 🔴';}
+  let verdict, label, bg, border, color;
+  if (total>=75){verdict='LONG'; label='✅ STRONG LONG'; bg='#f0fdf4'; border='#16a34a'; color='#15803d';}
+  else if(total>=65){verdict='LONG'; label='✅ LONG'; bg='#f0fdf4'; border='#16a34a'; color='#15803d';}
+  else if(total>=36){verdict='NEUTRAL'; label='⏸ NEUTRAL'; bg='#fffbeb'; border='#d97706'; color='#b45309';}
+  else if(total>=25){verdict='SHORT'; label='❌ SHORT'; bg='#fff5f5'; border='#c0392b'; color='#c0392b';}
+  else{verdict='SHORT'; label='❌ STRONG SHORT'; bg='#fff5f5'; border='#c0392b'; color='#c0392b';}
 
-  document.getElementById('scoreTotalVal').textContent=total+'/100';
-  document.getElementById('scoreTotalVal').style.color=color;
-  document.getElementById('scoreTotalLabel').textContent=label;
-  document.getElementById('scoreTotalLabel').style.color=color;
-  document.getElementById('scoreGaugeBar').style.width=total+'%';
-  document.getElementById('scoreGaugeBar').style.background=color;
-
-  const comps=[
-    {label:'Trend DSI (YoY)',score:dsiScore/25*17.5,max:17.5,tip:'DSI in calo nel tempo = segnale bullish. Confronto YoY rimuove stagionalità.'},
-    {label:'Inv/Sales Ratio',score:ivsScore/25*17.5,max:17.5,tip:'Rapporto Inventario/Vendite in miglioramento = lean.'},
-    {label:'Gross Margin',score:gmScore/20*15,max:15,tip:'Stabilità e direzione del margine lordo nel periodo.'},
-    {label:'SSS Quality',score:sssScore/15*15,max:15,tip:'Same-Store Sales positivo e crescente rispetto all\'inventario per mq.'},
-    {label:'GMROI Velocity',score:velScore/15*10,max:10,tip:'Efficienza dell\'investimento in inventario nel tempo.'},
-    {label:'Accounts Payable',score:apScore,max:10,tip:'AP cala mentre inventario cresce = red flag (auto-finanziamento). AP stabile = neutro.'},
-    {label:'Operating CF',score:ocfScore,max:10,tip:'OCF positivo e crescente = segnale bullish. OCF < Net Income = inventario assorbe cassa.'},
-    {label:'AR / Channel',score:arScore,max:7.5,tip:'AR cresce più delle vendite = channel stuffing = red flag SHORT doppio.'},
-    {label:'Net Debt',score:ndScore,max:2.5,tip:'Debito netto in crescita mentre inventario sale = rischio amplificato.'},
+  const components = [
+    {label:'Trend DSI',     score:dsiScore/25*17.5, max:17.5},
+    {label:'Inv/Sales',     score:ivsScore/25*17.5, max:17.5},
+    {label:'Gross Margin',  score:gmScore/20*15,    max:15},
+    {label:'SSS Quality',   score:sssScore/15*15,   max:15},
+    {label:'GMROI',         score:velScore/15*10,   max:10},
+    {label:'Accounts Pay.', score:apScore,          max:10},
+    {label:'Operating CF',  score:ocfScore,         max:10},
+    {label:'AR/Channel',    score:arScore,          max:7.5},
+    {label:'Net Debt',      score:ndScore,          max:2.5},
   ];
-  document.getElementById('scoreComponents').innerHTML=comps.map(c=>{
-    const pct=(c.score/c.max*100).toFixed(0);
-    const bc=c.score/c.max>0.65?'var(--green)':c.score/c.max>0.35?'var(--yellow)':'var(--red)';
-    return `<div class="score-comp" title="${c.tip}">
-      <div class="score-comp-label">${c.label}</div>
-      <div class="score-comp-bar"><div class="score-comp-fill" style="width:${pct}%;background:${bc};"></div></div>
-      <div class="score-comp-val" style="color:${bc};">${c.score.toFixed(1)}/${c.max}</div>
-    </div>`;
-  }).join('');
+
+  // Genera le motivazioni quantitative
+  const dsiChange = dsiFirst>0 ? ((dsiLast2-dsiFirst)/dsiFirst*100).toFixed(1) : null;
+  const ivsChange = ivsF>0    ? ((ivsL-ivsF)/ivsF*100).toFixed(1) : null;
+  const reasons = [];
+  if (dsiChange!==null) reasons.push(`Trend DSI: ${dsiChange>0?'+':''}${dsiChange}% → inventario ${dsiChange>0?'in build-up (segnale negativo)':'in normalizzazione (segnale positivo)'}`);
+  if (ivsChange!==null) reasons.push(`Inv/Sales: ${ivsChange>0?'+':''}${ivsChange}% → efficienza scorte ${ivsChange>0?'in peggioramento':'in miglioramento'}`);
+  const vgm2 = gm.filter(v=>v>0);
+  if (vgm2.length>=4) {
+    const gg2=Math.floor(vgm2.length/2);
+    const gmF2=vgm2.slice(0,gg2).reduce((a,b)=>a+b,0)/gg2;
+    const gmL2=vgm2.slice(gg2).reduce((a,b)=>a+b,0)/(vgm2.length-gg2);
+    reasons.push(`Gross Margin: ${gmF2.toFixed(1)}% → ${gmL2.toFixed(1)}% (${gmL2>gmF2?'espansione':'compressione'} di ${Math.abs(gmL2-gmF2).toFixed(1)}pp)`);
+  }
+  reasons.push(`Score complessivo: ${total}/100 — ${total>=65?'ciclo positivo dominante':total<=35?'ciclo negativo dominante':'segnale misto, attendere conferma'}`);
+
+  return { total, verdict, label, bg, border, color, components, reasons };
 }
 
-// Event listeners per live score
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.querySelectorAll('#tab-analyzer .inv, #tab-analyzer .cogs, #tab-analyzer .sales, #tab-analyzer .gm, #tab-analyzer .sss, #tab-analyzer .ap, #tab-analyzer .ocf, #tab-analyzer .ar, #tab-analyzer .nd').forEach(el=>{
-    el.addEventListener('input', updateBermanScore);
-  });
-});
+// Mostra il verdetto card da calcolo JS (sempre disponibile, indipendente dall'AI)
+function showJsVerdictCard(result) {
+  const vc = document.getElementById('verdictCardA');
+  if (!vc || !result) return;
+  vc.style.background  = result.bg;
+  vc.style.borderColor = result.border;
+  vc.style.display     = 'block';
+  document.getElementById('verdictLabelA').textContent = result.label;
+  document.getElementById('verdictLabelA').style.color = result.color;
+  document.getElementById('verdictWhyA').textContent   = 'Analisi quantitativa in corso...';
+  document.getElementById('verdictMotivationsA').innerHTML = result.reasons
+    .map(r=>`<div style="margin-bottom:6px;padding-left:12px;border-left:3px solid ${result.border};">${r}</div>`)
+    .join('');
+  // Aggiorna anche il badge nell'header
+  const sigEl = document.getElementById('resultSignalA');
+  if (sigEl) {
+    const cls = result.verdict==='LONG'?'long':result.verdict==='SHORT'?'short':'neutral';
+    sigEl.innerHTML = `<span class="signal ${cls}">${result.label}</span>`;
+  }
+  // Mostra i bottoni watchlist
+  const mw = document.getElementById('monitorBtnWrapA');
+  if (mw) mw.style.display = 'block';
+}
+
+// updateBermanScore rimane per compatibilità (non scrive più su elementi rimossi)
+function updateBermanScore() { computeBermanScore(); }
 
 // ===== RED FLAGS SEMAFORO =====
 function renderRedFlags(text, containerId) {

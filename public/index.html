@@ -1859,7 +1859,19 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
   // Determina aiLabel, colori e verdict una volta sola — unica fonte di verità
   let aiLabel = '⏸ NEUTRAL', aiBg = '#fffbeb', aiBorder = '#d97706', aiColor = '#b45309';
   if (scoreMatch) {
-    const sc = parseInt(scoreMatch[1]);
+    let sc = parseInt(scoreMatch[1]);
+
+    // ── Safety net: controlla coerenza tra PUNTEGGIO_CICLO e verdetto narrativo ──
+    // Se l'AI ha scritto GIALLO/NEUTRAL nel testo ma ha dato un punteggio fuori range,
+    // corregge il punteggio al minimo del range corretto (evita SHORT quando dice NEUTRAL).
+    const tail1500 = text.slice(-2000);
+    const narrativeIsGiallo = /🟡\s*GIALLO|⏸\s*NEUTRAL|GIALLO[^A-Z]|verdetto.*giallo|verdetto.*neutral/i.test(tail1500);
+    const narrativeIsVerde  = /🟢\s*VERDE|✅\s*LONG|verdetto.*verde|verdetto.*long/i.test(tail1500);
+    const narrativeIsRosso  = /🔴\s*ROSSO|❌\s*SHORT|verdetto.*rosso|verdetto.*short/i.test(tail1500);
+    if (narrativeIsGiallo && !narrativeIsVerde && !narrativeIsRosso && sc < 36) sc = 36;
+    if (narrativeIsVerde  && !narrativeIsRosso && sc < 65) sc = 65;
+    if (narrativeIsRosso  && !narrativeIsVerde && sc > 35) sc = 35;
+
     if      (sc >= 75) { aiLabel='✅ STRONG LONG'; aiBg='#f0fdf4'; aiBorder='#16a34a'; aiColor='#15803d'; verdict='LONG'; }
     else if (sc >= 65) { aiLabel='✅ LONG';        aiBg='#f0fdf4'; aiBorder='#16a34a'; aiColor='#15803d'; verdict='LONG'; }
     else if (sc >= 36) { aiLabel='⏸ NEUTRAL';     aiBg='#fffbeb'; aiBorder='#d97706'; aiColor='#b45309'; verdict='NEUTRAL'; }
@@ -1940,7 +1952,16 @@ function renderProbMeter(text, containerId) {
   // Supporta sia PUNTEGGIO_CICLO che PROBABILITÀ LONG
   const match = text.match(/PUNTEGGIO_CICLO[:\s]+(\d+)/i) || text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
   if (!match) { container.innerHTML = ''; return; }
-  const score = Math.max(1, Math.min(100, parseInt(match[1])));
+  let score = Math.max(1, Math.min(100, parseInt(match[1])));
+
+  // Safety net: stessa coerenza narrativo→punteggio applicata in renderResult
+  const tail2k = text.slice(-2000);
+  const meterNarrGiallo = /🟡\s*GIALLO|⏸\s*NEUTRAL|verdetto.*giallo|verdetto.*neutral/i.test(tail2k);
+  const meterNarrVerde  = /🟢\s*VERDE|✅\s*LONG|verdetto.*verde|verdetto.*long/i.test(tail2k);
+  const meterNarrRosso  = /🔴\s*ROSSO|❌\s*SHORT|verdetto.*rosso|verdetto.*short/i.test(tail2k);
+  if (meterNarrGiallo && !meterNarrVerde && !meterNarrRosso && score < 36) score = 36;
+  if (meterNarrVerde  && !meterNarrRosso && score < 65) score = 65;
+  if (meterNarrRosso  && !meterNarrVerde && score > 35) score = 35;
 
   // Determine zone
   const isShort  = score <= 35;
@@ -2539,8 +2560,15 @@ RIGA FINALE OBBLIGATORIA (ultima riga, nessun testo dopo)
 PUNTEGGIO_CICLO: [numero da 1 a 100]
 
 Scala: 1 = ciclo molto negativo (🔴 ROSSO forte) | 35 = soglia ROSSO/GIALLO | 50 = equilibrio | 65 = soglia GIALLO/VERDE | 100 = ciclo molto positivo (🟢 VERDE forte)
-Questo numero deve essere coerente con il verdetto e con il punteggio aggregato.
-Esempi: score 22/100 → PUNTEGGIO_CICLO: 18 | score 74/100 → PUNTEGGIO_CICLO: 72 | score 51/100 → PUNTEGGIO_CICLO: 51`;
+
+REGOLA DI COERENZA ASSOLUTA — NESSUNA ECCEZIONE:
+Il PUNTEGGIO_CICLO DEVE essere strettamente nel range corrispondente al verdetto narrativo emesso:
+  🟢 VERDE  → PUNTEGGIO_CICLO obbligatoriamente 65–100
+  🟡 GIALLO → PUNTEGGIO_CICLO obbligatoriamente 36–64
+  🔴 ROSSO  → PUNTEGGIO_CICLO obbligatoriamente 1–35
+Un GIALLO con PUNTEGGIO_CICLO 34 è un errore grave: stai dicendo NEUTRAL ma il sistema mostrerà SHORT.
+Se il punteggio aggregato è 34.5 ma il verdetto è GIALLO per gate failure, scrivi PUNTEGGIO_CICLO: 36 (minimo del range GIALLO).
+Esempi corretti: score 22/100 + ROSSO → PUNTEGGIO_CICLO: 22 | score 74/100 + VERDE → PUNTEGGIO_CICLO: 74 | score 34.5/100 + GIALLO (gate fail) → PUNTEGGIO_CICLO: 38 | score 51/100 + GIALLO → PUNTEGGIO_CICLO: 51`;
 }
 
 // ===== UPLOAD ANALYSIS =====

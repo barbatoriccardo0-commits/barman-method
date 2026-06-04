@@ -1879,16 +1879,19 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
   if (scoreMatch) {
     let sc = parseInt(scoreMatch[1]);
 
-    // ── Safety net: controlla coerenza tra PUNTEGGIO_CICLO e verdetto narrativo ──
-    // Se l'AI ha scritto GIALLO/NEUTRAL nel testo ma ha dato un punteggio fuori range,
-    // corregge il punteggio al minimo del range corretto (evita SHORT quando dice NEUTRAL).
-    const tail1500 = text.slice(-2000);
-    const narrativeIsGiallo = /🟡\s*GIALLO|⏸\s*NEUTRAL|GIALLO[^A-Z]|verdetto.*giallo|verdetto.*neutral/i.test(tail1500);
-    const narrativeIsVerde  = /🟢\s*VERDE|✅\s*LONG|verdetto.*verde|verdetto.*long/i.test(tail1500);
-    const narrativeIsRosso  = /🔴\s*ROSSO|❌\s*SHORT|verdetto.*rosso|verdetto.*short/i.test(tail1500);
-    if (narrativeIsGiallo && !narrativeIsVerde && !narrativeIsRosso && sc < 36) sc = 36;
-    if (narrativeIsVerde  && !narrativeIsRosso && sc < 65) sc = 65;
-    if (narrativeIsRosso  && !narrativeIsVerde && sc > 35) sc = 35;
+    // ── Safety net: allinea PUNTEGGIO_CICLO al verdetto narrativo ──
+    // Cerca il verdetto sia nella coda (riepilogo quantitativo) sia nel VERDETTO BERMAN (inizio)
+    const tail2k = text.slice(-2000);
+    const head2k = text.slice(0, 2000);
+    const narrativeIsGiallo = /🟡\s*GIALLO|⏸\s*NEUTRAL|AMBIGUO|GIALLO[^A-Z]/i.test(tail2k) && !/🔴\s*ROSSO|❌\s*SHORT|🟢\s*VERDE|✅\s*LONG/i.test(tail2k);
+    const narrativeIsVerde  = (/🟢\s*VERDE|✅\s*LONG/i.test(tail2k) && !/🔴\s*ROSSO|❌\s*SHORT/i.test(tail2k))
+                           || (/VERDE AZIENDALE/i.test(head2k) && !/ROSSO/i.test(head2k));
+    const narrativeIsRosso  = (/🔴\s*ROSSO|❌\s*SHORT/i.test(tail2k) && !/🟢\s*VERDE|✅\s*LONG/i.test(tail2k))
+                           || (/ROSSO AZIENDALE/i.test(head2k));
+    if (narrativeIsGiallo && sc < 36) sc = 36;
+    if (narrativeIsGiallo && sc > 64) sc = 64;
+    if (narrativeIsVerde  && sc < 65) sc = 65;
+    if (narrativeIsRosso  && sc > 35) sc = 35;
 
     if      (sc >= 75) { aiLabel='✅ STRONG LONG'; aiBg='#f0fdf4'; aiBorder='#16a34a'; aiColor='#15803d'; verdict='LONG'; }
     else if (sc >= 65) { aiLabel='✅ LONG';        aiBg='#f0fdf4'; aiBorder='#16a34a'; aiColor='#15803d'; verdict='LONG'; }
@@ -1937,7 +1940,8 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
           .join('');
         if (motivations) vmEl.innerHTML = motivations;
       }
-      vc.style.display = 'block';
+      // verdictCardA is suppressed — VERDETTO BERMAN is already rendered in resultContentA
+      // vc.style.display = 'block';
     }
   }
 
@@ -1973,14 +1977,18 @@ function renderProbMeter(text, containerId) {
   if (!match) { container.innerHTML = ''; return; }
   let score = Math.max(1, Math.min(100, parseInt(match[1])));
 
-  // Safety net: stessa coerenza narrativo→punteggio applicata in renderResult
+  // Safety net: allinea PUNTEGGIO_CICLO al verdetto narrativo (stessa logica di renderResult)
   const tail2k = text.slice(-2000);
-  const meterNarrGiallo = /🟡\s*GIALLO|⏸\s*NEUTRAL|verdetto.*giallo|verdetto.*neutral/i.test(tail2k);
-  const meterNarrVerde  = /🟢\s*VERDE|✅\s*LONG|verdetto.*verde|verdetto.*long/i.test(tail2k);
-  const meterNarrRosso  = /🔴\s*ROSSO|❌\s*SHORT|verdetto.*rosso|verdetto.*short/i.test(tail2k);
-  if (meterNarrGiallo && !meterNarrVerde && !meterNarrRosso && score < 36) score = 36;
-  if (meterNarrVerde  && !meterNarrRosso && score < 65) score = 65;
-  if (meterNarrRosso  && !meterNarrVerde && score > 35) score = 35;
+  const head2k = text.slice(0, 2000);
+  const meterNarrGiallo = /🟡\s*GIALLO|⏸\s*NEUTRAL|AMBIGUO/i.test(tail2k) && !/🔴\s*ROSSO|❌\s*SHORT|🟢\s*VERDE|✅\s*LONG/i.test(tail2k);
+  const meterNarrVerde  = (/🟢\s*VERDE|✅\s*LONG/i.test(tail2k) && !/🔴\s*ROSSO|❌\s*SHORT/i.test(tail2k))
+                       || (/VERDE AZIENDALE/i.test(head2k) && !/ROSSO/i.test(head2k));
+  const meterNarrRosso  = (/🔴\s*ROSSO|❌\s*SHORT/i.test(tail2k) && !/🟢\s*VERDE|✅\s*LONG/i.test(tail2k))
+                       || (/ROSSO AZIENDALE/i.test(head2k));
+  if (meterNarrGiallo && score < 36) score = 36;
+  if (meterNarrGiallo && score > 64) score = 64;
+  if (meterNarrVerde  && score < 65) score = 65;
+  if (meterNarrRosso  && score > 35) score = 35;
 
   // Determine zone
   const isShort  = score <= 35;
@@ -2354,8 +2362,6 @@ STRUTTURA RISPOSTA OBBLIGATORIA
 ## VERDETTO BERMAN
 [Scrivi questa sezione PER PRIMA, prima di qualsiasi analisi tecnica]
 
-**Verdetto:** 🟢 VERDE / 🔴 ROSSO / 🟡 GIALLO
-
 **PERCHÉ QUESTO VERDETTO:**
 Spiega in 3-5 frasi semplici, senza tecnicismi, cosa sta succedendo all'azienda e perché è un segnale positivo/negativo/neutro. Come lo spiegheresti a qualcuno che non conosce la finanza. Nessun acronimo, nessuna formula.
 
@@ -2399,13 +2405,29 @@ Verdict: "Accelerazione / Decelerazione / Inversione" con quantificazione precis
 
 **PUNTEGGIO AGGREGATO PONDERATO:**
 (DSI×2.5 + Inv/Sales×2 + SSS×1.5 + GM×1.5 + AP×0.75 + OCF×0.75 + AR×0.5 + ND×0.5 + Mgmt×0.5) / 10 = ___/100
-→ ≥70 + ≥6 segnali concordi: 🟢 VERDE | ≤30 + ≥6 segnali concordi: 🔴 ROSSO | tutto il resto: 🟡 GIALLO (obbligatorio)
+Conta quanti segnali puntano VERDE (score ≥6/10) e quanti ROSSO (score ≤4/10): "X/9 VERDE / Y/9 ROSSO"
+Nota: questo punteggio è evidenza di supporto. Il verdetto finale si basa sulla logica primaria Berman nella sezione successiva.
 
-## ${sec()}. FILTRO CONSENSO MULTI-SEGNALE (GATE OBBLIGATORIO prima del verdetto)
-Conta quanti dei 9 segnali della Scorecard puntano VERDE (score ≥6/10) e quanti ROSSO (score ≤4/10).
-Riporta: "X segnali VERDE / Y segnali ROSSO / Z neutri (score 4-6)"
-REGOLA: se non hai ≥6 segnali concordi in UNA SOLA direzione → verdetto AUTOMATICAMENTE 🟡 GIALLO, indipendentemente dal punteggio aggregato.
-Questo filtro elimina i casi borderline che storicamente generano il 70% degli errori.
+## ${sec()}. VERDETTO PRIMARIO BERMAN — LOGICA CORE (HBS Case 605-081 + Gaur-Fisher-Raman 2005)
+Il metodo Berman non usa una media di segnali: usa UN segnale dominante verificato settorialmente.
+
+**REGOLA 1 — DSI BUILD-UP (segnale dominante, da Berman stesso):**
+· DSI YoY >+20% per ≥2 trimestri consecutivi → 🔴 SEGNALE PRIMARIO ROSSO (inventory build-up anormale)
+· DSI YoY <-10% per ≥2 trimestri consecutivi → 🟢 SEGNALE PRIMARIO VERDE (lean confermato)
+· Tra -10% e +20% → nessun segnale primario chiaro → usa punteggio aggregato
+
+**REGOLA 2 — AZIENDALE vs SETTORIALE (tie-breaker decisivo di Berman):**
+· Target DSI diverge dai competitor → problema AZIENDALE → convinzione ALTA → mantieni verdetto primario
+· Tutto il settore ha DSI in salita → problema SETTORIALE → convinzione BASSA → abbassa verdetto (×0.70 su P(miss))
+· Nota: un problema SETTORIALE è meno profittabile per lo short perché il mercato lo sconta già parzialmente
+
+**REGOLA 3 — CONFERMA MARGINI ("the smoking gun" di Berman, dal caso HBS):**
+· DSI↑ + GM% attuale ≥ GM% storico normalizzato → markdowns NON ancora presi → svalutazione latente certa → SHORT CONFERMATO con massima convinzione
+· DSI↑ + GM% già in calo → markdown in corso → SHORT confermato, timing meno preciso
+· DSI↓ + GM% stabile o in espansione → lean genuino → LONG CONFERMATO
+
+**VERDETTO PRIMARIO:** 🔴 ROSSO AZIENDALE / 🔴 ROSSO SETTORIALE (bassa conv.) / 🟢 VERDE / 🟡 AMBIGUO
+Motiva in 2 righe applicando le 3 regole sopra ai dati numerici forniti.
 
 ## ${sec()}. HIDDEN INVENTORY IMPAIRMENT CALCULATOR (Il segnale più predittivo)
 Questa è la sezione più importante dell'analisi. Quantifica la svalutazione d'inventario non ancora registrata a P&L.
@@ -2549,13 +2571,13 @@ Valuta anche: rischio M&A bid, rischio settore in ripresa macro rapida.
 
 | Gate | Condizione | Risultato |
 |------|-----------|-----------|
-| Gate 1 — Punteggio | Score ≥70 (VERDE) o ≤30 (ROSSO) | PASS / FAIL |
-| Gate 2 — Consenso segnali | ≥6/9 segnali concordi in una direzione | PASS / FAIL |
+| Gate 1 — Segnale DSI primario | DSI YoY >+20% (ROSSO) o <-10% (VERDE) per ≥2 trim. O punteggio aggregato ≥70/≤30 | PASS / FAIL |
+| Gate 2 — Company-specific | Problema AZIENDALE (non settoriale): target diverge dai competitor | PASS / FAIL |
 | Gate 3 — Multi-quarter | Segnale confermato ≥2 trimestri consecutivi | PASS / FAIL |
-| Gate 4 — Alpha residuo | Revisioni analisti NON già incorporate (≤2 ribasso) | PASS / FAIL |
+| Gate 4 — Alpha residuo | Revisioni analisti NON già incorporate (≤2 ribasso negli ultimi 90gg) | PASS / FAIL |
 | Gate 5 — Timing | 14-70 giorni a earnings | PASS / FAIL |
 
-Se anche UN SOLO gate è FAIL → verdetto OBBLIGATORIAMENTE 🟡 GIALLO.
+Regola gate: Gate 1 e Gate 3 sono OBBLIGATORI (se fail → 🟡 GIALLO). Gate 2, 4, 5 abbassano la convinzione se fail ma NON forzano automaticamente GIALLO se il segnale DSI primario è chiaro e confermato dai margini.
 
 ## ${sec()}. RIEPILOGO QUANTITATIVO
 Gate superati: __/5 | Score: __/100 | Segnali concordi: __/9
@@ -2588,13 +2610,24 @@ PUNTEGGIO_CICLO: [numero da 1 a 100]
 Scala: 1 = ciclo molto negativo (🔴 ROSSO forte) | 35 = soglia ROSSO/GIALLO | 50 = equilibrio | 65 = soglia GIALLO/VERDE | 100 = ciclo molto positivo (🟢 VERDE forte)
 
 REGOLA DI COERENZA ASSOLUTA — NESSUNA ECCEZIONE:
-Il PUNTEGGIO_CICLO DEVE essere strettamente nel range corrispondente al verdetto narrativo emesso:
-  🟢 VERDE  → PUNTEGGIO_CICLO obbligatoriamente 65–100
-  🟡 GIALLO → PUNTEGGIO_CICLO obbligatoriamente 36–64
-  🔴 ROSSO  → PUNTEGGIO_CICLO obbligatoriamente 1–35
-Un GIALLO con PUNTEGGIO_CICLO 34 è un errore grave: stai dicendo NEUTRAL ma il sistema mostrerà SHORT.
-Se il punteggio aggregato è 34.5 ma il verdetto è GIALLO per gate failure, scrivi PUNTEGGIO_CICLO: 36 (minimo del range GIALLO).
-Esempi corretti: score 22/100 + ROSSO → PUNTEGGIO_CICLO: 22 | score 74/100 + VERDE → PUNTEGGIO_CICLO: 74 | score 34.5/100 + GIALLO (gate fail) → PUNTEGGIO_CICLO: 38 | score 51/100 + GIALLO → PUNTEGGIO_CICLO: 51`;
+Il PUNTEGGIO_CICLO RIFLETTE IL VERDETTO BERMAN (segnale DSI primario + settore + margini), non solo il punteggio aggregato dei 9 segnali.
+
+Scala verdetto → PUNTEGGIO_CICLO:
+  🔴 ROSSO AZIENDALE (DSI >+20% + azienda-specifica + margini confermano) → 1–35 (usa l'entità del DSI build-up per calibrare: build-up estremo = 1-15, moderato = 16-35)
+  🔴 ROSSO SETTORIALE (DSI >+20% ma problema di settore) → 28–35 (più vicino alla soglia GIALLO, minore convinzione)
+  🟢 VERDE AZIENDALE (DSI <-10% + lean + margini stabili) → 65–100
+  🟡 GIALLO (segnale primario assente, misto, o Gate 1/3 fail) → 36–64
+
+REGOLA BERMAN FONDAMENTALE:
+· Se verdetto primario è 🔴 ROSSO AZIENDALE confermato dai margini → PUNTEGGIO_CICLO massimo è 35, indipendentemente dal punteggio aggregato dei 9 segnali
+· Se verdetto primario è 🟢 VERDE AZIENDALE confermato → PUNTEGGIO_CICLO minimo è 65
+· Non esiste un caso in cui il segnale DSI primario è chiaramente ROSSO AZIENDALE ma il PUNTEGGIO_CICLO è >35
+
+Esempi corretti:
+· DSI +35% YoY per 3 trim., problema aziendale, GM% sopra storico → PUNTEGGIO_CICLO: 18 (ROSSO forte)
+· DSI +22% YoY per 2 trim., problema settoriale → PUNTEGGIO_CICLO: 32 (ROSSO debole)
+· DSI +12% YoY, segnale misto, 1 trim. solo → PUNTEGGIO_CICLO: 44 (GIALLO)
+· DSI -18% YoY per 3 trim., lean aziendale, GM stabile → PUNTEGGIO_CICLO: 78 (VERDE)`;
 }
 
 // ===== UPLOAD ANALYSIS =====

@@ -1876,14 +1876,22 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
     .replace(/\n/g,'<br>');
   document.getElementById(contentId).innerHTML = fmt;
 
-  // Determina il verdetto dalla risposta AI (supporta entrambi i formati)
+  // Verdetto: usa PUNTEGGIO_CICLO (ultima riga, sempre univoco) come fonte primaria
   const sigEl = document.getElementById(signalId);
   let verdict = 'NEUTRAL';
-  const hasVerde  = /🟢\s*VERDE|✅\s*LONG|VERDETTO[^a-z]*VERDE|VERDETTO[^a-z]*LONG/i.test(text);
-  const hasRosso  = /🔴\s*ROSSO|❌\s*SHORT|VERDETTO[^a-z]*ROSSO|VERDETTO[^a-z]*SHORT/i.test(text);
-  if (hasVerde && !hasRosso)       { sigEl.innerHTML='<span class="signal long">✅ LONG</span>';    verdict='LONG'; }
-  else if (hasRosso && !hasVerde)  { sigEl.innerHTML='<span class="signal short">❌ SHORT</span>';  verdict='SHORT'; }
-  else                              { sigEl.innerHTML='<span class="signal neutral">⏸ NEUTRAL</span>'; }
+  const scoreMatch = text.match(/PUNTEGGIO_CICLO[:\s]+(\d+)/i) || text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
+  if (scoreMatch) {
+    const sc = parseInt(scoreMatch[1]);
+    if      (sc >= 65) { sigEl.innerHTML = '<span class="signal long">✅ LONG</span>';    verdict = 'LONG'; }
+    else if (sc <= 35) { sigEl.innerHTML = '<span class="signal short">❌ SHORT</span>';  verdict = 'SHORT'; }
+    else               { sigEl.innerHTML = '<span class="signal neutral">⏸ NEUTRAL</span>'; }
+  } else {
+    // Fallback: cerca il verdetto testuale nella sezione finale del testo
+    const tail = text.slice(-1500);
+    if      (/VERDE|✅\s*LONG/i.test(tail) && !/ROSSO|❌\s*SHORT/i.test(tail)) { sigEl.innerHTML='<span class="signal long">✅ LONG</span>';    verdict='LONG'; }
+    else if (/ROSSO|❌\s*SHORT/i.test(tail) && !/VERDE|✅\s*LONG/i.test(tail)) { sigEl.innerHTML='<span class="signal short">❌ SHORT</span>';  verdict='SHORT'; }
+    else { sigEl.innerHTML='<span class="signal neutral">⏸ NEUTRAL</span>'; }
+  }
 
   const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='block';
 

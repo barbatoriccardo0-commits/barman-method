@@ -2237,6 +2237,12 @@ async function runManualAnalysis() {
   const rb=document.getElementById('resultBoxA'), rc=document.getElementById('resultContentA'),
         ld=document.getElementById('loadingA'), mw=document.getElementById('monitorBtnWrapA');
   rb.style.display='block'; ld.style.display='flex'; rc.innerHTML=''; mw.style.display='none';
+  // Reset completo dei risultati precedenti
+  document.getElementById('resultSignalA').innerHTML = '';
+  document.getElementById('redFlagsA').innerHTML = '';
+  document.getElementById('probMeterA').innerHTML = '';
+  const vc = document.getElementById('verdictCardA');
+  if (vc) vc.style.display = 'none';
   document.getElementById('resultTitleA').textContent=`Analisi Berman — ${company} (${ticker})`;
   rb.scrollIntoView({behavior:'smooth',block:'start'});
 

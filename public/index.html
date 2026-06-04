@@ -15,35 +15,35 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;}
- 
+
 .site-header{background:linear-gradient(135deg,var(--navy) 0%,#1a3a60 100%);color:#fff;padding:28px 40px 20px;border-bottom:3px solid var(--gold);}
 .site-header h1{font-size:24px;font-weight:700;letter-spacing:-0.5px;}
 .site-header h1 span{color:var(--gold2);}
 .site-header p{color:#a0b4cc;font-size:13px;margin-top:4px;}
 .badge-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
 .badge{background:rgba(201,168,76,.15);border:1px solid var(--gold);color:var(--gold2);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase;}
- 
+
 .tab-nav{background:var(--navy2);display:flex;overflow-x:auto;border-bottom:2px solid var(--gold);}
 .tab-btn{flex-shrink:0;padding:13px 20px;color:#a0b4cc;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;}
 .tab-btn:hover{color:#fff;background:rgba(255,255,255,.05);}
 .tab-btn.active{color:var(--gold2);border-bottom-color:var(--gold);background:rgba(201,168,76,.08);}
- 
+
 .tab-content{display:none;padding:28px 40px;max-width:1120px;margin:0 auto;}
 .tab-content.active{display:block;}
- 
+
 .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px 26px;margin-bottom:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .card-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .card-title::before{content:'';display:block;width:4px;height:18px;background:var(--gold);border-radius:2px;}
- 
+
 .section-title{font-size:19px;font-weight:700;color:var(--navy);margin:26px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--border);}
- 
+
 table{width:100%;border-collapse:collapse;font-size:13.5px;}
 th{background:var(--navy);color:#fff;padding:9px 13px;text-align:left;font-weight:600;font-size:12px;letter-spacing:.4px;text-transform:uppercase;}
 td{padding:9px 13px;border-bottom:1px solid var(--border);color:var(--text2);}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#f8faff;}
 .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);}
- 
+
 .metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:16px;}
 .metric-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;}
 .metric-card.green{border-left:4px solid var(--green);}
@@ -53,20 +53,20 @@ tr:hover td{background:#f8faff;}
 .metric-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
 .metric-value{font-size:22px;font-weight:700;color:var(--navy);margin:4px 0;}
 .metric-note{font-size:12px;color:var(--text3);}
- 
+
 .formula{background:#f0f4ff;border-left:4px solid #4a6fa5;border-radius:6px;padding:12px 16px;font-family:'Courier New',monospace;font-size:13px;color:#1a3260;margin:10px 0;}
 .quote{background:linear-gradient(135deg,#fffbf0,#fff8e1);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:14px 18px;margin:14px 0;font-style:italic;color:var(--navy);font-size:14px;}
 .quote-source{font-style:normal;font-size:12px;color:var(--text3);margin-top:5px;font-weight:600;}
- 
+
 .signal{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
 .signal.long{background:#e6f9f2;color:var(--green);border:1px solid var(--green);}
 .signal.short{background:#fdf0ef;color:var(--red);border:1px solid var(--red);}
 .signal.neutral{background:#fef9e7;color:var(--yellow);border:1px solid var(--yellow);}
- 
+
 .info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 16px;margin-bottom:18px;font-size:13.5px;color:#1e40af;}
 .warn-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px 16px;margin-bottom:18px;font-size:13.5px;color:#92400e;}
 .success-box{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:13.5px;color:#166534;}
- 
+
 /* FORM */
 .form-group{display:flex;flex-direction:column;gap:5px;}
 .form-group label{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.4px;}
@@ -76,7 +76,7 @@ tr:hover td{background:#f8faff;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
 .full{grid-column:1/-1;}
- 
+
 /* QUARTER INPUTS - scrollable 12Q */
 .qgrid-wrap{overflow-x:auto;padding-bottom:4px;}
 .qgrid{display:grid;grid-template-columns:repeat(12,minmax(88px,1fr));gap:6px;min-width:900px;}
@@ -85,7 +85,7 @@ tr:hover td{background:#f8faff;}
 .qi input{text-align:center;padding:6px 3px;font-size:12px;border:1px solid var(--border);border-radius:5px;background:#fafbfd;font-family:inherit;width:100%;}
 .qi input:focus{outline:none;border-color:#4a6fa5;}
 .qsection-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin:14px 0 6px;padding:6px 10px;border-radius:5px;}
- 
+
 /* BUTTONS */
 .analyze-btn{background:linear-gradient(135deg,var(--navy),#1a3a60);color:#fff;border:1px solid var(--gold);border-radius:8px;padding:13px 28px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:18px;transition:all .2s;letter-spacing:.3px;}
 .analyze-btn:hover{background:linear-gradient(135deg,#1a3a60,#254d7a);}
@@ -98,7 +98,7 @@ tr:hover td{background:#f8faff;}
 .intel-btn:disabled{opacity:.6;cursor:not-allowed;}
 .monitor-btn{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:7px;padding:10px 20px;font-size:13px;font-weight:700;color:#166534;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s;margin-top:10px;}
 .monitor-btn:hover{background:linear-gradient(135deg,#dcfce7,#bbf7d0);}
- 
+
 /* DROP ZONES */
 .drop-zone{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfd;}
 .drop-zone:hover,.drop-zone.over{border-color:var(--gold);background:#fffbf0;}
@@ -107,9 +107,9 @@ tr:hover td{background:#f8faff;}
 .drop-zone .dz-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px;}
 .drop-zone .dz-sub{font-size:11px;color:var(--text3);}
 .drop-zone .dz-filename{font-size:12px;color:var(--green);font-weight:600;margin-top:6px;}
- 
+
 .comp-upload-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:10px;}
- 
+
 /* COMPETITOR ROWS */
 .comp-row{display:grid;grid-template-columns:1.5fr 0.8fr 0.8fr 0.8fr 0.8fr auto;gap:7px;align-items:center;margin-bottom:7px;}
 .comp-row input{padding:7px 9px;border:1px solid var(--border);border-radius:5px;font-size:13px;background:#fafbfd;font-family:inherit;width:100%;}
@@ -120,10 +120,10 @@ tr:hover td{background:#f8faff;}
 .rm-btn:hover{background:#fdf0ef;}
 .add-comp-btn{background:transparent;border:1px dashed var(--border);border-radius:6px;padding:7px 14px;font-size:13px;color:var(--text3);cursor:pointer;width:100%;margin-top:3px;transition:all .2s;}
 .add-comp-btn:hover{border-color:var(--navy);color:var(--navy);background:#f8faff;}
- 
+
 /* INTEL BOX */
 .intel-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 16px;margin-top:10px;font-size:13px;color:#1e3a6e;display:none;line-height:1.75;}
- 
+
 /* RESULT */
 .result-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px;margin-top:22px;display:none;}
 .result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
@@ -132,9 +132,9 @@ tr:hover td{background:#f8faff;}
 .loading-row{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:14px;margin:10px 0;}
 .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
- 
+
 .chart-wrap{position:relative;height:210px;margin-top:14px;}
- 
+
 /* CASE CARDS */
 .case-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:22px;}
 .case-header{background:var(--navy);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
@@ -148,7 +148,7 @@ tr:hover td{background:#f8faff;}
 .tl-item:last-child{padding-bottom:0;}
 .tl-item strong{color:var(--navy);display:block;font-size:13px;margin-bottom:2px;}
 .tl-item p{font-size:13px;color:var(--text2);}
- 
+
 /* STEP BOXES */
 .step-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;}
 .step-num{flex-shrink:0;width:30px;height:30px;background:var(--navy);color:var(--gold2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
@@ -156,7 +156,7 @@ tr:hover td{background:#f8faff;}
 .step-body p,.step-body ul{font-size:13.5px;color:var(--text2);}
 .step-body ul{padding-left:16px;margin-top:4px;}
 .mono{font-family:monospace;background:#f0f4ff;padding:2px 5px;border-radius:3px;font-size:12px;color:#1a3260;}
- 
+
 /* PLATFORM CARDS */
 .platform-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;}
 .platform-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
@@ -165,7 +165,7 @@ tr:hover td{background:#f8faff;}
 .platform-card ul li{padding:2px 0;display:flex;gap:5px;}
 .platform-card ul li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
 .platform-card ul li.con::before{content:'✗';color:var(--red);}
- 
+
 .stat-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);}
 .stat-row:last-child{border-bottom:none;}
 .stat-label{font-size:13px;color:var(--text);min-width:200px;}
@@ -173,24 +173,24 @@ tr:hover td{background:#f8faff;}
 .stat-bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
 .stat-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--navy),#4a6fa5);}
 .stat-val{font-size:14px;font-weight:700;color:var(--navy);min-width:70px;text-align:right;}
- 
+
 .checklist{list-style:none;}
 .checklist li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px;}
 .checklist li:last-child{border-bottom:none;}
 .checklist li .num{flex-shrink:0;width:23px;height:23px;background:var(--navy);color:var(--gold2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
 .checklist li .txt strong{display:block;color:var(--navy);font-weight:600;}
 .checklist li .txt span{color:var(--text2);font-size:13px;}
- 
+
 /* FILE SNIPPET */
 .file-snippet{background:#f0f4ff;border-radius:6px;padding:10px 13px;font-family:monospace;font-size:11px;color:#1a3260;max-height:110px;overflow-y:auto;white-space:pre-wrap;border:1px solid #bfdbfe;margin-top:8px;}
- 
+
 @media(max-width:700px){
   .tab-content{padding:18px 14px;}
   .site-header{padding:18px 14px;}
   .grid2,.grid3{grid-template-columns:1fr;}
   .comp-row{grid-template-columns:1fr 1fr;}.comp-row input.c-name{grid-column:1/-1;}
 }
- 
+
 /* ===== PROBABILITY METER ===== */
 .prob-meter-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-top:18px;}
 .prob-meter-title{font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.4px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
@@ -209,7 +209,7 @@ tr:hover td{background:#f8faff;}
 .prob-zone-labels-row span:nth-child(1){color:#c0392b;font-weight:700;}
 .prob-zone-labels-row span:nth-child(2){color:#718096;}
 .prob-zone-labels-row span:nth-child(3){color:#1a9e6e;font-weight:700;}
- 
+
 /* ===== LIVE BERMAN SCORE ===== */
 .score-gauge-outer{background:#e8ecf0;border-radius:50px;height:18px;overflow:hidden;margin:10px 0;}
 .score-gauge-bar{height:100%;border-radius:50px;transition:width .5s ease,background .5s ease;}
@@ -221,7 +221,7 @@ tr:hover td{background:#f8faff;}
 .score-comp-bar{background:#e8ecf0;border-radius:4px;height:6px;overflow:hidden;}
 .score-comp-fill{height:100%;border-radius:4px;transition:width .4s;}
 .score-comp-val{font-size:13px;font-weight:700;color:var(--navy);margin-top:4px;}
- 
+
 /* ===== RED FLAGS SEMAFORO ===== */
 .redflag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:12px;}
 .redflag-item{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;border-radius:7px;font-size:13px;}
@@ -231,23 +231,23 @@ tr:hover td{background:#f8faff;}
 .redflag-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
 .redflag-text strong{display:block;font-size:12px;font-weight:700;color:var(--navy);}
 .redflag-text span{font-size:11px;color:var(--text3);}
- 
+
 /* ===== WATCHLIST ===== */
 .wl-ticker{font-family:monospace;font-size:12px;background:#f0f4ff;padding:2px 7px;border-radius:4px;color:#1e40af;display:inline-block;}
 .wl-add-btn{background:linear-gradient(135deg,var(--navy),#1a3a60);color:var(--gold2);border:1px solid var(--gold);border-radius:7px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;}
 .wl-add-btn:hover{background:linear-gradient(135deg,#162840,#254d7a);}
- 
+
 /* ===== PRINT & ACTION BTNS ===== */
 .print-btn{background:#fff;border:1px solid var(--border);border-radius:7px;padding:8px 16px;font-size:13px;font-weight:600;color:#374151;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;}
 .print-btn:hover{background:#f3f4f6;border-color:#9ca3af;}
 .action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
- 
+
 /* ===== TOOLTIP ===== */
 .tip{position:relative;cursor:help;border-bottom:1px dashed var(--text3);display:inline;}
 .tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;font-size:11px;padding:5px 9px;border-radius:5px;white-space:normal;z-index:200;font-weight:normal;pointer-events:none;width:200px;text-align:center;display:none;}
 .tip::before{content:'';position:absolute;bottom:calc(100% + 1px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--navy);z-index:200;display:none;}
 .tip:hover::after,.tip:hover::before{display:block;}
- 
+
 /* ===== PRINT MEDIA ===== */
 @media print{
   .tab-nav,.badge-row,.analyze-btn,.secondary-btn,.intel-btn,.monitor-btn,.add-comp-btn,.action-row,.edgar-fetch-block,button{display:none!important;}
@@ -256,7 +256,7 @@ tr:hover td{background:#f8faff;}
   .result-box{display:block!important;border:none;}
   .card{border:1px solid #ddd;box-shadow:none;break-inside:avoid;}
 }
- 
+
 /* ===== PASSWORD MODAL ===== */
 .pw-overlay{position:fixed;inset:0;background:rgba(10,18,32,.92);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;}
 .pw-overlay.hidden{display:none;}
@@ -272,7 +272,7 @@ tr:hover td{background:#f8faff;}
 </style>
 </head>
 <body>
- 
+
 <!-- PASSWORD MODAL -->
 <div class="pw-overlay" id="pwOverlay">
   <div class="pw-box">
@@ -285,7 +285,7 @@ tr:hover td{background:#f8faff;}
     <div class="pw-error" id="pwError"></div>
   </div>
 </div>
- 
+
 <div class="site-header">
   <h1>Metodo <span>David Berman</span> — Manuale Operativo Avanzato</h1>
   <p>Decostruzione forense della tecnica analitica del fondatore di Durban Capital LP · Harvard Business School Case 605-081</p>
@@ -298,8 +298,8 @@ tr:hover td{background:#f8faff;}
     <span class="badge">AI Analyzer</span>
   </div>
 </div>
- 
- 
+
+
 <div class="tab-nav">
   <button class="tab-btn active" onclick="showTab('metodo',this)">📊 Il Metodo</button>
   <button class="tab-btn" onclick="showTab('track',this)">📈 Track Record</button>
@@ -311,7 +311,7 @@ tr:hover td{background:#f8faff;}
   <button class="tab-btn" onclick="showTab('storico',this)">📜 Storico Analisi</button>
   <button class="tab-btn" onclick="showTab('watchlist',this)">📌 Watchlist</button>
 </div>
- 
+
 <!-- ===== TAB: METODO ===== -->
 <div id="tab-metodo" class="tab-content active">
   <div class="section-title">Il Framework di Base</div>
@@ -337,7 +337,7 @@ tr:hover td{background:#f8faff;}
       </tbody>
     </table></div>
   </div>
- 
+
   <div class="section-title">Le Metriche Quantitative</div>
   <div class="card">
     <div class="card-title">DSI — Giorni di Inventario</div>
@@ -360,7 +360,7 @@ tr:hover td{background:#f8faff;}
     <p style="font-size:13.5px;color:var(--text2);margin-top:8px;">Un aumento delle SSS accompagnato da un aumento proporzionale dell'inventario per mq <strong>non è un segnale positivo</strong> — è atteso statisticamente. La qualità delle SSS si misura solo in relazione al delta dell'inventario per mq.</p>
   </div>
 </div>
- 
+
 <!-- ===== TAB: TRACK RECORD ===== -->
 <div id="tab-track" class="tab-content">
   <div class="section-title">Track Record e Validazione</div>
@@ -391,7 +391,7 @@ tr:hover td{background:#f8faff;}
     <div class="stat-row"><div class="stat-label">Finestra del segnale prima che il mercato lo prezza</div><div class="stat-bar-wrap"><div class="stat-bar"><div class="stat-bar-fill" style="width:40%"></div></div></div><div class="stat-val">1–2 anni</div></div>
   </div>
 </div>
- 
+
 <!-- ===== TAB: IMPLEMENTARE ===== -->
 <div id="tab-implementare" class="tab-content">
   <div class="section-title">Guida Pratica — Come Replicare il Metodo</div>
@@ -418,7 +418,7 @@ tr:hover td{background:#f8faff;}
     </table></div>
   </div>
 </div>
- 
+
 <!-- ===== TAB: CASE STUDIES ===== -->
 <div id="tab-casi" class="tab-content">
   <div class="section-title">Case Studies Reali</div>
@@ -456,7 +456,7 @@ tr:hover td{background:#f8faff;}
     </div>
   </div>
 </div>
- 
+
 <!-- ===== TAB: PIATTAFORME ===== -->
 <div id="tab-piattaforme" class="tab-content">
   <div class="section-title">Piattaforme per Operare Long e Short</div>
@@ -496,12 +496,12 @@ tr:hover td{background:#f8faff;}
     </table></div>
   </div>
 </div>
- 
+
 <!-- ===== TAB: ANALIZZATORE AI ===== -->
 <div id="tab-analyzer" class="tab-content">
   <div class="section-title">🤖 Analizzatore AI — Inserimento Manuale</div>
   <div class="info-box">📊 Inserisci i dati manualmente (12 trimestri = 3 anni di storico). Fonte: Macrotrends.net, Stockanalysis.com, SEC EDGAR. Più storico inserisci, più accurata sarà l'analisi.</div>
- 
+
   <!-- AZIENDA -->
   <div class="card">
     <div class="card-title">Dati Azienda</div>
@@ -516,7 +516,7 @@ tr:hover td{background:#f8faff;}
       <div class="form-group"><label>P/E Forward</label><input id="a_pe" type="number" step="0.1" placeholder="es. 14.5"/></div>
     </div>
   </div>
- 
+
   <!-- EDGAR FETCH BLOCK -->
   <div class="card" style="border:2px solid #bfdbfe;background:linear-gradient(135deg,#eff6ff,#f8faff);">
     <div class="card-title" style="color:#1e40af;">⚡ Recupero Dati Automatico — Inserisci il Ticker</div>
@@ -534,109 +534,109 @@ tr:hover td{background:#f8faff;}
       </div>
       <button class="analyze-btn" style="width:auto;margin-top:0;padding:9px 24px;font-size:14px;" onclick="fetchEdgarData()">⚡ Carica Dati</button>
     </div>
- 
+
     <div id="edgarLoading" class="loading-row" style="display:none;margin-top:12px;">
       <div class="spinner"></div><span>Recupero dati finanziari storici...</span>
     </div>
- 
+
     <div id="edgarResult" style="display:none;margin-top:14px;">
       <div class="success-box" id="edgarSuccessMsg"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;" id="edgarLinks"></div>
     </div>
- 
+
     <div style="margin-top:12px;padding:10px 14px;background:rgba(201,168,76,.1);border-radius:7px;border:1px solid rgba(201,168,76,.3);font-size:12px;color:#92400e;">
       ⚠️ <strong>Importante:</strong> i dati caricati automaticamente provengono dalla knowledge base AI (aggiornata a inizio 2025). Potrebbero non riflettere i trimestri più recenti. Verifica sempre con il bilancio ufficiale prima di operare.
     </div>
   </div>
- 
+
   <!-- 12 TRIMESTRI -->
   <div class="card">
     <div class="card-title">Dati Quantitativi — 12 Trimestri (3 anni di storico)</div>
     <p style="font-size:12px;color:var(--text3);margin-bottom:10px;">Inserisci dal più vecchio (T1) al più recente (T12). Valori in milioni di dollari. Lascia vuoto se non disponibile.</p>
- 
+
     <div class="qsection-label" style="background:#f0f4ff;color:#1e40af;">📅 Etichette Trimestri</div>
     <div class="qgrid-wrap"><div class="qgrid" id="qlabels">
       <div class="qi"><label>T1</label><input class="ql" placeholder="Q1'22"/></div><div class="qi"><label>T2</label><input class="ql" placeholder="Q2'22"/></div><div class="qi"><label>T3</label><input class="ql" placeholder="Q3'22"/></div><div class="qi"><label>T4</label><input class="ql" placeholder="Q4'22"/></div>
       <div class="qi"><label>T5</label><input class="ql" placeholder="Q1'23"/></div><div class="qi"><label>T6</label><input class="ql" placeholder="Q2'23"/></div><div class="qi"><label>T7</label><input class="ql" placeholder="Q3'23"/></div><div class="qi"><label>T8</label><input class="ql" placeholder="Q4'23"/></div>
       <div class="qi"><label>T9</label><input class="ql" placeholder="Q1'24"/></div><div class="qi"><label>T10</label><input class="ql" placeholder="Q2'24"/></div><div class="qi"><label>T11</label><input class="ql" placeholder="Q3'24"/></div><div class="qi"><label>T12 ←</label><input class="ql" placeholder="Q4'24"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#f0fff8;color:#166534;margin-top:14px;">📦 Inventario ($M) — Balance Sheet → "Inventories"</div>
     <div class="qgrid-wrap"><div class="qgrid" id="inv_row">
       <div class="qi"><label>T1</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T2</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T3</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T4</label><input class="inv" type="number" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T6</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T7</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T8</label><input class="inv" type="number" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T10</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T11</label><input class="inv" type="number" placeholder="0"/></div><div class="qi"><label>T12</label><input class="inv" type="number" placeholder="0"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#fdf0ef;color:#9b1c1c;margin-top:14px;">💰 COGS ($M) — Income Statement → "Cost of goods sold"</div>
     <div class="qgrid-wrap"><div class="qgrid">
       <div class="qi"><label>T1</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T2</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T3</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T4</label><input class="cogs" type="number" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T6</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T7</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T8</label><input class="cogs" type="number" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T10</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T11</label><input class="cogs" type="number" placeholder="0"/></div><div class="qi"><label>T12</label><input class="cogs" type="number" placeholder="0"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#eff6ff;color:#1e40af;margin-top:14px;">📈 Vendite Nette ($M) — Income Statement → "Net sales"</div>
     <div class="qgrid-wrap"><div class="qgrid">
       <div class="qi"><label>T1</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T2</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T3</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T4</label><input class="sales" type="number" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T6</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T7</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T8</label><input class="sales" type="number" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T10</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T11</label><input class="sales" type="number" placeholder="0"/></div><div class="qi"><label>T12</label><input class="sales" type="number" placeholder="0"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#fdf4ff;color:#6b21a8;margin-top:14px;">📊 Gross Margin % — calcola: (Vendite−COGS)/Vendite×100</div>
     <div class="qgrid-wrap"><div class="qgrid">
       <div class="qi"><label>T1</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T2</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T3</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T4</label><input class="gm" type="number" step="0.1" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T6</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T7</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T8</label><input class="gm" type="number" step="0.1" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T10</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T11</label><input class="gm" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T12</label><input class="gm" type="number" step="0.1" placeholder="0"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#fffbeb;color:#92400e;margin-top:14px;">🏪 Same-Store Sales % — Earnings release / MD&amp;A (0 se non disponibile)</div>
     <div class="qgrid-wrap"><div class="qgrid">
       <div class="qi"><label>T1</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T2</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T3</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T4</label><input class="sss" type="number" step="0.1" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T6</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T7</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T8</label><input class="sss" type="number" step="0.1" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T10</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T11</label><input class="sss" type="number" step="0.1" placeholder="0"/></div><div class="qi"><label>T12</label><input class="sss" type="number" step="0.1" placeholder="0"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#f0f4ff;color:#1e40af;margin-top:14px;">💳 Accounts Payable ($M) — Balance Sheet → "Accounts payable" <span style="font-weight:400;font-size:10px;">(segnale chiave: AP cresce = fornitori finanziano l'eccesso)</span></div>
     <div class="qgrid-wrap"><div class="qgrid">
       <div class="qi"><label>T1</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T2</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T3</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T4</label><input class="ap" type="number" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T6</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T7</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T8</label><input class="ap" type="number" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T10</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T11</label><input class="ap" type="number" placeholder="0"/></div><div class="qi"><label>T12</label><input class="ap" type="number" placeholder="0"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#f4f0ff;color:#6b21a8;margin-top:14px;">💵 Operating Cash Flow ($M) — Cash Flow Statement → "Net cash from operations" <span style="font-weight:400;font-size:10px;">(OCF &lt; Net Income = inventario assorbe cassa → segnale short)</span></div>
     <div class="qgrid-wrap"><div class="qgrid">
       <div class="qi"><label>T1</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T2</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T3</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T4</label><input class="ocf" type="number" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T6</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T7</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T8</label><input class="ocf" type="number" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T10</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T11</label><input class="ocf" type="number" placeholder="0"/></div><div class="qi"><label>T12</label><input class="ocf" type="number" placeholder="0"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#fff0f5;color:#9d174d;margin-top:14px;">📬 Accounts Receivable ($M) — Balance Sheet → "Accounts receivable" <span style="font-weight:400;font-size:10px;">(AR cresce + inventario cresce = channel stuffing → doppio red flag)</span></div>
     <div class="qgrid-wrap"><div class="qgrid">
       <div class="qi"><label>T1</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T2</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T3</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T4</label><input class="ar" type="number" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T6</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T7</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T8</label><input class="ar" type="number" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T10</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T11</label><input class="ar" type="number" placeholder="0"/></div><div class="qi"><label>T12</label><input class="ar" type="number" placeholder="0"/></div>
     </div></div>
- 
+
     <div class="qsection-label" style="background:#fef2f2;color:#7f1d1d;margin-top:14px;">🏦 Net Debt ($M) — Balance Sheet: Debiti fin. totali − Cassa <span style="font-weight:400;font-size:10px;">(debito crescente + inventario in eccesso = rischio amplificato)</span></div>
     <div class="qgrid-wrap"><div class="qgrid">
       <div class="qi"><label>T1</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T2</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T3</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T4</label><input class="nd" type="number" placeholder="0"/></div>
       <div class="qi"><label>T5</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T6</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T7</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T8</label><input class="nd" type="number" placeholder="0"/></div>
       <div class="qi"><label>T9</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T10</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T11</label><input class="nd" type="number" placeholder="0"/></div><div class="qi"><label>T12</label><input class="nd" type="number" placeholder="0"/></div>
     </div></div>
- 
+
     <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
       <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:6px;">ANTEPRIMA GRAFICO (aggiornato in tempo reale)</div>
       <div class="chart-wrap"><canvas id="liveChart"></canvas></div>
     </div>
   </div>
- 
+
   <!-- EARNINGS CALL TRANSCRIPT -->
   <div class="card">
     <div class="card-title">📞 Earnings Call Forensics — Trascrizione (opzionale ma potente)</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:10px;">Incolla qui la sezione MD&amp;A del 10-Q o la trascrizione dell'ultima earnings call. L'AI cerca frasi evasive, razionalizzazioni dell'inventario alto, segnali di stress nascosti — esattamente come fa Berman in ascolto delle call.</p>
     <div class="form-group"><label>Testo earnings call / MD&A (puoi incollare anche solo la sezione sull'inventario)</label><textarea id="a_transcript" rows="6" placeholder="Es: 'Our inventory position reflects our strategic decision to build depth in key categories to support our growth initiatives...' — Oppure copia direttamente la sezione Liquidity and Capital Resources del 10-Q."></textarea></div>
   </div>
- 
+
   <!-- COMPETITOR BLOCK -->
   <div class="card">
     <div class="card-title">🏪 Database Competitor — Contesto Settoriale</div>
@@ -661,7 +661,7 @@ tr:hover td{background:#f8faff;}
     <!-- DATA QUALITY BAR -->
     <div id="dataQualityBar" style="display:none;margin-top:10px;"></div>
   </div>
- 
+
   <!-- VALUATION & MARKET DATA -->
   <div class="card">
     <div class="card-title">📉 Dati di Valutazione e Mercato</div>
@@ -697,7 +697,7 @@ tr:hover td{background:#f8faff;}
       </div>
     </div>
   </div>
- 
+
   <!-- CHANNEL CHECK -->
   <div class="card" style="border-left:4px solid var(--gold);">
     <div class="card-title">🔎 Channel Check — Segnali Osservabili sul Campo</div>
@@ -719,7 +719,7 @@ tr:hover td{background:#f8faff;}
     <div class="form-group" style="margin-top:8px;"><label>Note libere (sopralluogo, recensioni online, Reddit, ex-dipendenti)</label>
       <textarea id="cc_notes" rows="2" placeholder="Es: 'Google Maps 2024: clienti lamentano eccesso merce invenduta. Reddit: ex-dipendenti confermano pressione gestionale su sell-through...'"></textarea></div>
   </div>
- 
+
   <div class="card" style="border:none;background:transparent;box-shadow:none;padding:0;">
     <!-- LIVE BERMAN SCORE -->
     <div class="card" id="scoreLiveCard" style="display:none;border:2px solid var(--gold);background:linear-gradient(135deg,#fffbf0,#fff8e1);">
@@ -739,7 +739,7 @@ tr:hover td{background:#f8faff;}
     </div>
     <button class="analyze-btn" onclick="runManualAnalysis()" style="margin-top:14px;">🔍 Analizza con il Metodo Berman</button>
   </div>
- 
+
   <div class="result-box" id="resultBoxA">
     <div class="result-header"><h3 id="resultTitleA">Analisi Berman</h3><div id="resultSignalA"></div></div>
     <div class="loading-row" id="loadingA" style="display:none;"><div class="spinner"></div><span>Applicazione del metodo Berman in corso...</span></div>
@@ -755,7 +755,7 @@ tr:hover td{background:#f8faff;}
     </div>
   </div>
 </div>
- 
+
 <!-- ===== TAB: CARICA BILANCI ===== -->
 <div id="tab-upload" class="tab-content">
   <div class="section-title">📂 Carica Bilanci — Analisi Comparativa Automatica</div>
@@ -763,7 +763,7 @@ tr:hover td{background:#f8faff;}
     📌 <strong>Come funziona:</strong> Carica il bilancio dell'azienda target + fino a 5 file dei competitor. L'AI li legge tutti, calcola DSI e metriche per ciascuno, li confronta e risponde alla domanda fondamentale: il problema dell'inventario è <strong>aziendale</strong> o <strong>settoriale</strong>?<br><br>
     <strong>Formati accettati:</strong> CSV, TXT, TSV, o qualsiasi file testuale. Per Excel → Salva come CSV. Per PDF → copia il testo e incollalo nel campo manuale.
   </div>
- 
+
   <!-- TARGET FILE -->
   <div class="card">
     <div class="card-title">🎯 Azienda Target</div>
@@ -784,7 +784,7 @@ tr:hover td{background:#f8faff;}
       <div class="form-group"><label>Oppure incolla il testo del bilancio target</label><textarea id="targetContent" rows="5" style="font-family:monospace;font-size:12px;" placeholder="Incolla qui il CSV o testo copiato da SEC EDGAR / Macrotrends / Stockanalysis..."></textarea></div>
     </div>
   </div>
- 
+
   <!-- COMPETITOR FILES -->
   <div class="card">
     <div class="card-title">🏪 Bilanci Competitor (fino a 5)</div>
@@ -804,7 +804,7 @@ tr:hover td{background:#f8faff;}
       <div id="compSlot4"><div class="drop-zone" id="dzComp4" onclick="document.getElementById('fileComp4').click()" ondragover="dzOver(event,'dzComp4')" ondragleave="dzLeave('dzComp4')" ondrop="dzDrop(event,'dzComp4','fileComp4','compContent4')"><div class="dz-icon">🏢</div><div class="dz-title">Competitor 5</div><div class="dz-sub">CSV / TXT</div><div class="dz-filename" id="fnComp4"></div><input type="file" id="fileComp4" accept=".csv,.txt,.tsv,.text" style="display:none" onchange="fileSelected(event,'dzComp4','fnComp4','compContent4')"></div><input type="text" id="compName4" placeholder="Nome / Ticker" style="margin-top:6px;width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:5px;font-size:13px;background:#fafbfd;font-family:inherit;"><textarea id="compContent4" rows="2" style="margin-top:4px;width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:5px;font-size:11px;font-family:monospace;background:#fafbfd;display:none;" placeholder="Testo incollato..."></textarea></div>
     </div>
   </div>
- 
+
   <!-- EARNINGS CALL + SECTOR INTEL -->
   <div class="card">
     <div class="card-title">📞 Earnings Call &amp; Contesto</div>
@@ -818,7 +818,7 @@ tr:hover td{background:#f8faff;}
     <div class="intel-box" id="intelBoxU"></div>
     <button class="analyze-btn" onclick="runUploadAnalysis()">🔍 Analizza Tutti i Bilanci con il Metodo Berman</button>
   </div>
- 
+
   <!-- RESULTS -->
   <div class="result-box" id="resultBoxU">
     <div class="result-header"><h3 id="resultTitleU">Analisi Comparativa Berman</h3><div id="resultSignalU"></div></div>
@@ -837,14 +837,14 @@ tr:hover td{background:#f8faff;}
     </div>
   </div>
 </div>
- 
+
 <!-- ===== TAB: STORICO ANALISI ===== -->
 <div id="tab-storico" class="tab-content">
   <div class="section-title">📜 Storico Analisi — Sessione Corrente</div>
   <div class="info-box">
     📌 Le analisi vengono salvate automaticamente ogni volta che esegui un'analisi AI. Lo storico persiste durante la sessione. Usa <strong>Esporta CSV</strong> per salvare i dati sul tuo computer prima di chiudere.
   </div>
- 
+
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <div class="card-title" style="margin-bottom:0;">Analisi Eseguite</div>
@@ -853,17 +853,17 @@ tr:hover td{background:#f8faff;}
         <button class="secondary-btn" onclick="clearHistory()" style="color:var(--red);border-color:var(--red);">🗑️ Cancella storico</button>
       </div>
     </div>
- 
+
     <div id="historySummary" style="display:none;margin-bottom:14px;">
       <div class="metrics-grid" id="historyMetrics"></div>
     </div>
- 
+
     <div id="historyEmpty" style="text-align:center;padding:40px;color:var(--text3);">
       <div style="font-size:32px;margin-bottom:8px;">📭</div>
       <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px;">Nessuna analisi ancora</div>
       <div style="font-size:13px;">Vai all'Analizzatore AI o a Carica Bilanci ed esegui la prima analisi.</div>
     </div>
- 
+
     <div id="historyTable" style="display:none;">
       <div class="table-wrap">
         <table id="historyTbl">
@@ -885,7 +885,7 @@ tr:hover td{background:#f8faff;}
       </div>
     </div>
   </div>
- 
+
   <!-- DETTAGLIO SINGOLA ANALISI -->
   <div class="card" id="historyDetailCard" style="display:none;">
     <div class="card-title" id="historyDetailTitle">Dettaglio Analisi</div>
@@ -894,19 +894,19 @@ tr:hover td{background:#f8faff;}
       <button class="wl-add-btn" onclick="addToWatchlistFromHistory()" id="addWlFromHistoryBtn">📌 Aggiungi alla Watchlist</button>
     </div>
   </div>
- 
+
   <!-- GRAFICO STORICO VERDETTI -->
   <div class="card" id="historyChartCard" style="display:none;">
     <div class="card-title">Distribuzione Verdetti</div>
     <div class="chart-wrap" style="height:180px;"><canvas id="verdictChart"></canvas></div>
   </div>
 </div>
- 
+
 <!-- ===== TAB: WATCHLIST ===== -->
 <div id="tab-watchlist" class="tab-content">
   <div class="section-title">📌 Watchlist — Portafoglio Idee</div>
   <div class="info-box">Tieni traccia di tutte le aziende che stai monitorando con il metodo Berman. Aggiungi dalla Storico dopo un'analisi, o manualmente. La watchlist è salvata per la sessione corrente — esportala in CSV per archiviarla.</div>
- 
+
   <div class="card">
     <div class="card-title">Aggiungi Manualmente</div>
     <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
@@ -921,7 +921,7 @@ tr:hover td{background:#f8faff;}
       <button class="wl-add-btn" onclick="addToWatchlistManual()">📌 Aggiungi</button>
     </div>
   </div>
- 
+
   <div class="card">
     <div class="card-title">Le Tue Posizioni</div>
     <div id="wlEmpty" style="text-align:center;padding:34px;color:var(--text3);">
@@ -942,7 +942,7 @@ tr:hover td{background:#f8faff;}
       </div>
     </div>
   </div>
- 
+
   <div class="card" id="wlChartCard" style="display:none;">
     <div class="card-title">Distribuzione Segnali in Watchlist</div>
     <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
@@ -951,11 +951,11 @@ tr:hover td{background:#f8faff;}
     </div>
   </div>
 </div>
- 
+
 <script>
 // ===== PASSWORD GATE =====
 let _sitePassword = sessionStorage.getItem('berman_pw') || '';
- 
+
 (function initPasswordGate() {
   if (_sitePassword) {
     document.getElementById('pwOverlay').classList.add('hidden');
@@ -964,7 +964,7 @@ let _sitePassword = sessionStorage.getItem('berman_pw') || '';
   const inp = document.getElementById('pwInput');
   if (inp && !_sitePassword) setTimeout(() => inp.focus(), 200);
 })();
- 
+
 async function submitPassword() {
   const inp = document.getElementById('pwInput');
   const pw = inp.value.trim();
@@ -994,7 +994,7 @@ async function submitPassword() {
     inp.disabled = false;
   }
 }
- 
+
 // ===== AI ENGINE — chiama il backend /api/analyze =====
 async function callAI(prompt) {
   const res = await fetch('/api/analyze', {
@@ -1016,7 +1016,7 @@ async function callAI(prompt) {
   const data = await res.json();
   return data.content || '';
 }
- 
+
 // ===== TAB NAV =====
 function showTab(id, btn) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -1024,11 +1024,11 @@ function showTab(id, btn) {
   document.getElementById('tab-' + id).classList.add('active');
   if (btn) btn.classList.add('active');
 }
- 
+
 // ===== HISTORY ENGINE =====
 const analysisHistory = [];
 let verdictChartObj = null;
- 
+
 function saveToHistory(company, sector, verdict, dsiLast, dsiTrend, conviction, fullText) {
   const now = new Date();
   const entry = {
@@ -1045,14 +1045,14 @@ function saveToHistory(company, sector, verdict, dsiLast, dsiTrend, conviction, 
   analysisHistory.push(entry);
   renderHistory();
 }
- 
+
 function detectVerdict(text) {
   const up = text.toUpperCase();
   if (up.includes('✅ LONG') || up.includes('VERDETTO: LONG') || up.includes('SEGNALE: LONG')) return 'LONG';
   if (up.includes('❌ SHORT') || up.includes('VERDETTO: SHORT') || up.includes('SEGNALE: SHORT')) return 'SHORT';
   return 'NEUTRAL';
 }
- 
+
 function detectConviction(text) {
   const up = text.toUpperCase();
   const pcts = text.match(/(\d{1,2})%\s*(del portafoglio|portafoglio)/i);
@@ -1066,7 +1066,7 @@ function detectConviction(text) {
   if (up.includes('BASSA CONVINZIONE')) return 'Bassa';
   return 'Media';
 }
- 
+
 function renderHistory() {
   const empty = document.getElementById('historyEmpty');
   const tbl   = document.getElementById('historyTable');
@@ -1074,7 +1074,7 @@ function renderHistory() {
   const summ  = document.getElementById('historySummary');
   const metricsEl = document.getElementById('historyMetrics');
   const chartCard = document.getElementById('historyChartCard');
- 
+
   if (!analysisHistory.length) {
     empty.style.display = 'block'; tbl.style.display = 'none';
     summ.style.display = 'none'; chartCard.style.display = 'none';
@@ -1082,7 +1082,7 @@ function renderHistory() {
   }
   empty.style.display = 'none'; tbl.style.display = 'block';
   summ.style.display = 'block'; chartCard.style.display = 'block';
- 
+
   // Summary metrics
   const longs   = analysisHistory.filter(e => e.verdict === 'LONG').length;
   const shorts  = analysisHistory.filter(e => e.verdict === 'SHORT').length;
@@ -1092,7 +1092,7 @@ function renderHistory() {
     <div class="metric-card green"><div class="metric-label">LONG</div><div class="metric-value">${longs}</div><div class="metric-note">${(longs/analysisHistory.length*100).toFixed(0)}% del totale</div></div>
     <div class="metric-card red"><div class="metric-label">SHORT</div><div class="metric-value">${shorts}</div><div class="metric-note">${(shorts/analysisHistory.length*100).toFixed(0)}% del totale</div></div>
     <div class="metric-card yellow"><div class="metric-label">NEUTRAL</div><div class="metric-value">${neutral}</div><div class="metric-note">${(neutral/analysisHistory.length*100).toFixed(0)}% del totale</div></div>`;
- 
+
   // Table rows
   tbody.innerHTML = analysisHistory.slice().reverse().map(e => {
     const signalHtml = e.verdict === 'LONG'
@@ -1113,7 +1113,7 @@ function renderHistory() {
       <td><button class="secondary-btn" style="padding:4px 10px;font-size:12px;" onclick="showHistoryDetail(${e.id-1})">👁 Vedi</button></td>
     </tr>`;
   }).join('');
- 
+
   // Pie chart
   const ctx = document.getElementById('verdictChart').getContext('2d');
   if (verdictChartObj) verdictChartObj.destroy();
@@ -1128,7 +1128,7 @@ function renderHistory() {
     }
   });
 }
- 
+
 function showHistoryDetail(idx) {
   const entry = analysisHistory[idx];
   if (!entry) return;
@@ -1145,7 +1145,7 @@ function showHistoryDetail(idx) {
   card.style.display = 'block';
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
- 
+
 function exportHistoryCSV() {
   if (!analysisHistory.length) { alert('Nessuna analisi da esportare.'); return; }
   const headers = ['#','Data/Ora','Azienda','Settore','Verdetto','DSI Ultimo','Trend DSI','Convinzione'];
@@ -1157,7 +1157,7 @@ function exportHistoryCSV() {
   a.download = `berman-analisi-${new Date().toISOString().slice(0,10)}.csv`;
   a.click(); URL.revokeObjectURL(url);
 }
- 
+
 function clearHistory() {
   if (!analysisHistory.length) return;
   if (!confirm('Cancellare tutte le analisi della sessione?')) return;
@@ -1165,7 +1165,7 @@ function clearHistory() {
   document.getElementById('historyDetailCard').style.display = 'none';
   renderHistory();
 }
- 
+
 // ===== EDGAR / AI DATA FETCH =====
 // ── SEC EDGAR — chiama /api/sec (server-side, evita CORS e User-Agent) ────────
 async function fetchSECQuantitative(ticker) {
@@ -1180,24 +1180,24 @@ async function fetchSECQuantitative(ticker) {
     return null;
   }
 }
- 
+
 async function fetchEdgarData() {
   const ticker  = document.getElementById('edgarTicker').value.trim().toUpperCase();
   const company = document.getElementById('edgarCompany').value.trim();
   if (!ticker) { alert('Inserisci un ticker.'); return; }
- 
+
   const loading = document.getElementById('edgarLoading');
   const result  = document.getElementById('edgarResult');
   const msg     = document.getElementById('edgarSuccessMsg');
   const links   = document.getElementById('edgarLinks');
- 
+
   loading.style.display = 'flex'; result.style.display = 'none';
- 
+
   const prompt = `Sei un analista finanziario forense specializzato nel Metodo Berman (inventario retail). Raccogli TUTTI i dati disponibili per ${company || ticker} (ticker: ${ticker}) dalla tua knowledge base aggiornata (SEC EDGAR 10-Q/10-K, earnings call trascrizioni, Macrotrends, Stockanalysis, report analisti, notizie settore).
- 
+
 Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — nessun testo prima o dopo.
 IMPORTANTE: usa la tua miglior stima per ogni campo, anche se approssimativa. Un valore approssimativo è sempre meglio di null. Usa null SOLO se non hai assolutamente nessuna informazione su quel dato. Indica le incertezze nel campo "note".
- 
+
 SCHEMA DA RESTITUIRE:
 {
   "company": "Nome completo azienda",
@@ -1256,7 +1256,7 @@ SCHEMA DA RESTITUIRE:
   "affidabilita": "alta | media | bassa",
   "note": "Eventuali limitazioni: dati mancanti, periodi non coperti, incertezze sulla precisione"
 }
- 
+
 REGOLE CRITICHE:
 1. I 12 periodi devono essere cronologicamente ordinati dal più vecchio (sx) al più recente (dx)
 2. Tutti gli array devono avere esattamente 12 elementi (usa null dove mancano dati)
@@ -1271,7 +1271,7 @@ REGOLE CRITICHE:
 5. Includi almeno 3 competitor diretti con i loro dati di inventario
 6. fonti: elenca ogni fonte usata, anche se generica ("knowledge base al [data]")
 7. PRIORITÀ DATI: usa la tua knowledge base per stimare i valori con la massima precisione possibile. Per aziende quotate USA (S&P500, Russell 1000) hai dati sufficienti per compilare la maggior parte dei campi. Preferisci sempre un valore approssimativo a null — indica l'incertezza nelle "note".`;
- 
+
   // Helper per chiamare /api/market
   async function fetchMarketData(tick) {
     try {
@@ -1280,7 +1280,7 @@ REGOLE CRITICHE:
       return await r.json();
     } catch(e) { return null; }
   }
- 
+
   let data = null, secData = null, mkt = null;
   try {
     // Lancia SEC XBRL, Yahoo Finance market e AI in parallelo
@@ -1299,7 +1299,7 @@ REGOLE CRITICHE:
     msg.textContent = 'Errore: ' + (e.message || e);
     result.style.display = 'block'; return;
   }
- 
+
   // Verifica dati minimi: SEC o AI deve avere almeno i periodi
   const hasPeriods = (secData && secData.periodi.length >= 4) || (data && data.periodi && data.periodi.length);
   if (!hasPeriods) {
@@ -1308,7 +1308,7 @@ REGOLE CRITICHE:
     result.style.display = 'block';
     buildEdgarLinks(ticker, links); return;
   }
- 
+
   // ── URL fonti dinamici per questo ticker ───────────────────────────────
   const tickerLow  = ticker.toLowerCase();
   const srcEdgar   = `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${ticker}&type=10-Q&dateb=&owner=include&count=8`;
@@ -1320,14 +1320,14 @@ REGOLE CRITICHE:
   const secEdgarUrl = secData?.cik
     ? `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${secData.cik}&type=10-Q&dateb=&owner=include&count=8`
     : srcEdgar;
- 
+
   // ── Helper base (nessun colore — solo per campi certi al 100%) ──────────
   function setField(id, val) {
     if (val === null || val === undefined) return;
     const el = document.getElementById(id);
     if (el) el.value = val;
   }
- 
+
   // ── Helper VERDE: alta affidabilità (~85-95%) ───────────────────────────
   function setFieldG(id, val, pct, sourceLabel, sourceUrl) {
     if (val === null || val === undefined) return;
@@ -1340,7 +1340,7 @@ REGOLE CRITICHE:
     el.title = `✅ Accuratezza stimata: ~${pct}% — Fonte: ${sourceLabel} (${sourceUrl})`;
     el.dataset.uncertain = pct;
   }
- 
+
   // ── Helper ARANCIONE: media/bassa affidabilità (~50-80%) ────────────────
   function setFieldC(id, val, pct, sourceLabel, sourceUrl) {
     if (val === null || val === undefined) return;
@@ -1353,7 +1353,7 @@ REGOLE CRITICHE:
     el.title = `🟠 Accuratezza stimata: ~${pct}% — Per maggiore sicurezza verifica su: ${sourceLabel} (${sourceUrl})`;
     el.dataset.uncertain = pct;
   }
- 
+
   // ── Helper VERDE per select ─────────────────────────────────────────────
   function setSelectG(id, val, pct, sourceLabel, sourceUrl) {
     if (!val) return;
@@ -1367,8 +1367,8 @@ REGOLE CRITICHE:
     el.style.background  = '#f0fdf4';
     el.title = `✅ Accuratezza stimata: ~${pct}% — Fonte: ${sourceLabel} (${sourceUrl})`;
   }
- 
-  // ── Helper ARANCIONE per select ─────────────────────────────────────────
+
+  // ── Helper per select con soglia colore ─────────────────────────────────
   function setSelectC(id, val, pct, sourceLabel, sourceUrl) {
     if (!val) return;
     const el = document.getElementById(id);
@@ -1376,19 +1376,22 @@ REGOLE CRITICHE:
     const opts = [...el.options].map(o => o.value);
     if (!opts.includes(val)) return;
     el.value = val;
-    el.style.borderColor = '#f97316';
+    const isGreen = pct >= 65;
+    el.style.borderColor = isGreen ? '#16a34a' : '#f97316';
     el.style.borderWidth = '2px';
-    el.style.background  = '#fff7ed';
-    el.title = `🟠 Accuratezza stimata: ~${pct}% — Per maggiore sicurezza verifica su: ${sourceLabel} (${sourceUrl})`;
+    el.style.background  = isGreen ? '#f0fdf4' : '#fff7ed';
+    el.title = isGreen
+      ? `✅ Accuratezza stimata: ~${pct}% — Fonte: ${sourceLabel} (${sourceUrl})`
+      : `🟠 Accuratezza stimata: ~${pct}% — Per maggiore sicurezza verifica su: ${sourceLabel} (${sourceUrl})`;
     el.dataset.uncertain = pct;
   }
- 
+
   // ── Helper per array griglia ────────────────────────────────────────────
   function highlightEls(els, pct, sourceLabel, sourceUrl) {
-    const color  = pct >= 80 ? '#16a34a' : '#f97316';
-    const bg     = pct >= 80 ? '#f0fdf4' : '#fff7ed';
-    const icon   = pct >= 80 ? '✅' : '🟠';
-    const verb   = pct >= 80 ? 'Fonte' : 'Per maggiore sicurezza verifica su';
+    const color  = pct >= 65 ? '#16a34a' : '#f97316';
+    const bg     = pct >= 65 ? '#f0fdf4' : '#fff7ed';
+    const icon   = pct >= 65 ? '✅' : '🟠';
+    const verb   = pct >= 65 ? 'Fonte' : 'Per maggiore sicurezza verifica su';
     els.forEach(el => {
       if (!el || el.value === '') return;
       el.style.borderColor = color;
@@ -1398,24 +1401,27 @@ REGOLE CRITICHE:
       el.dataset.uncertain = pct;
     });
   }
- 
+
   // ── Helper per textarea con colore ─────────────────────────────────────
   function setTextareaC(id, val, pct, sourceLabel, sourceUrl) {
     if (!val) return;
     const el = document.getElementById(id);
     if (!el) return;
     el.value = val;
-    el.style.borderColor = '#f97316';
+    const isGreen = pct >= 65;
+    el.style.borderColor = isGreen ? '#16a34a' : '#f97316';
     el.style.borderWidth = '2px';
-    el.style.background  = '#fff7ed';
-    el.title = `🟠 Accuratezza stimata: ~${pct}% — Per maggiore sicurezza verifica su: ${sourceLabel} (${sourceUrl})`;
+    el.style.background  = isGreen ? '#f0fdf4' : '#fff7ed';
+    el.title = isGreen
+      ? `✅ Accuratezza stimata: ~${pct}% — Fonte: ${sourceLabel} (${sourceUrl})`
+      : `🟠 Accuratezza stimata: ~${pct}% — Per maggiore sicurezza verifica su: ${sourceLabel} (${sourceUrl})`;
   }
- 
+
   // ── Dati azienda base ─────────────────────────────────────────────────
   // company / ticker sempre dall'input utente
   setField('a_ticker', ticker);
   if (data?.company) setField('a_company', data.company);
- 
+
   // Sector da AI (85%)
   if (data?.sector) {
     const el = document.getElementById('a_sector');
@@ -1427,10 +1433,10 @@ REGOLE CRITICHE:
       el.title = `✅ Accuratezza stimata: ~85% — Fonte: knowledge base AI`;
     }
   }
- 
+
   // Store count da AI (85%) — non disponibile in API standard
   if (data?.negozi) setFieldG('a_stores', data.negozi, 85, 'Yahoo Finance / 10-K', srcYahoo);
- 
+
   // ── Dati di mercato REALI da Yahoo Finance via /api/market (≥95%) ──────
   if (mkt && !mkt.error) {
     // Prezzo e valutazione
@@ -1474,22 +1480,22 @@ REGOLE CRITICHE:
       }
     }
   }
- 
+
   // Shares da SEC XBRL (se Yahoo non ha risposto)
   if (secData?.latestShares && (!mkt || mkt.error || mkt.shares_M === null)) {
     setFieldG('a_shares', secData.latestShares, 95, 'SEC EDGAR XBRL — CommonStockSharesOutstanding', secEdgarUrl || srcEdgar);
   }
- 
+
   // ── PE settore e GM normalizzato — solo AI ─────────────────────────────
   if (data) {
-  setFieldC('a_pe_sector', data.pe_settore,     70, 'Finviz / Sector benchmarks', srcFinviz);
-  setFieldC('a_gm_normal', data.gm_normalizzato,75, 'Stockanalysis', srcSA);
- 
+  setFieldG('a_pe_sector', data.pe_settore,     78, 'Finviz / Sector benchmarks', srcFinviz);
+  setFieldG('a_gm_normal', data.gm_normalizzato,78, 'Stockanalysis', srcSA);
+
   // Store delta, DTC% → solo da earnings release (AI)
   } // fine if (data)
- 
+
   // Contesto settore → gestito più avanti con setTextareaC
- 
+
   // ── Griglia 12 trimestri ────────────────────────────────────────────────
   const qlEls   = [...document.querySelectorAll('#tab-analyzer .ql')];
   const invEls  = [...document.querySelectorAll('#tab-analyzer .inv')];
@@ -1501,16 +1507,16 @@ REGOLE CRITICHE:
   const ocfEls  = [...document.querySelectorAll('#tab-analyzer .ocf')];
   const arEls   = [...document.querySelectorAll('#tab-analyzer .ar')];
   const ndEls   = [...document.querySelectorAll('#tab-analyzer .nd')];
- 
+
   // Periodi: preferisce SEC (più aggiornati e certi), fallback AI
   const periods = (secData && secData.periodi.length >= 4) ? secData.periodi : (data?.periodi || []);
   const n = Math.min(periods.length, 12);
   const v = (arr, i) => (arr && arr[i] !== null && arr[i] !== undefined) ? arr[i] : '';
   const sv = (arr, i) => (arr && arr[i] !== null && arr[i] !== undefined) ? arr[i] : '';
- 
+
   for (let i = 0; i < 12; i++) {
     if (qlEls[i]) qlEls[i].value = i < n ? (periods[i] || '') : '';
- 
+
     if (secData) {
       // ── DATI SEC UFFICIALI (~95% accurati) ──
       if (invEls[i])  invEls[i].value  = sv(secData.inv_M,  i);
@@ -1537,7 +1543,7 @@ REGOLE CRITICHE:
       if (ndEls[i])   ndEls[i].value   = v(data?.net_debt_M, i);
     }
   }
- 
+
   // ── Evidenziazione: verde se SEC, arancione se solo AI ─────────────────
   // (secEdgarUrl già definito sopra)
   if (secData) {
@@ -1557,15 +1563,15 @@ REGOLE CRITICHE:
     highlightEls(ocfEls,  50, 'SEC EDGAR 10-Q → Cash Flow Statement',srcEdgar);
     highlightEls(arEls,   50, 'SEC EDGAR 10-Q → Accounts Receivable',srcEdgar);
   }
-  // SSS sempre AI (non in XBRL)
-  highlightEls(sssEls, 60, 'Earnings Release / MD&A — non in XBRL', srcEdgar);
+  // SSS sempre AI (non in XBRL) — alzato a 75%: AI ha dati earnings recenti
+  highlightEls(sssEls, 75, 'Earnings Release / MD&A — non in XBRL', srcEdgar);
   // Net Debt: verde se viene da SEC XBRL, arancione se solo AI
   if (secData) {
     highlightEls(ndEls, 88, 'SEC EDGAR 10-Q — LongTermDebt + ShortTermDebt - Cash (dato ufficiale)', secEdgarUrl);
   } else {
     highlightEls(ndEls, 55, 'SEC EDGAR 10-Q → Balance Sheet (stima AI)', srcEdgar);
   }
- 
+
   // ── EPS trimestrali da SEC XBRL (se Yahoo non disponibile) ──────────────
   if (secData && Array.isArray(secData.eps_4q) && (!mkt || mkt.error)) {
     const eps4ids = ['a_eps_q1','a_eps_q2','a_eps_q3','a_eps_q4'];
@@ -1580,10 +1586,10 @@ REGOLE CRITICHE:
         setFieldG(id, last4eps[i], 93, 'SEC EDGAR XBRL — EarningsPerShareDiluted', eps4src);
     });
   }
- 
+
   // ── Sezioni qualitative (solo se AI ha risposto) ────────────────────────
   if (data) {
- 
+
   // ── Competitor (~70% affidabili) ────────────────────────────────────────
   if (Array.isArray(data.competitor) && data.competitor.length) {
     const compRows = document.querySelectorAll('#tab-analyzer .comp-row');
@@ -1599,10 +1605,10 @@ REGOLE CRITICHE:
       const applyC = (el, val) => {
         if (!el || val === null || val === undefined) return;
         el.value = val;
-        el.style.borderColor = '#f97316';
+        el.style.borderColor = '#16a34a';
         el.style.borderWidth = '2px';
-        el.style.background  = '#fff7ed';
-        el.title = `🟠 Accuratezza stimata: ~70% — Verifica su: Stockanalysis (${srcSA})`;
+        el.style.background  = '#f0fdf4';
+        el.title = `✅ Accuratezza stimata: ~78% — Verifica su: Stockanalysis (${srcSA})`;
       };
       applyC(dsiEl,  c.dsi);
       applyC(ivsEl,  c.inv_sales);
@@ -1610,27 +1616,27 @@ REGOLE CRITICHE:
       applyC(sssEl,  c.sss_pct);
     });
   }
- 
-  // ── Management notes (~60% affidabile) ──────────────────────────────────
-  setTextareaC('a_mgmt', data.management_notes, 60, 'SEC EDGAR earnings releases', srcEdgar);
- 
-  // ── Contesto settore (qualitativo — arancione 65%) ───────────────────────
-  setTextareaC('a_context', data.contesto_settore, 65, 'knowledge base AI / notizie settore', srcFinviz);
- 
-  // ── Earnings call forensics (~55% affidabile) ────────────────────────────
-  setTextareaC('a_transcript', data.earnings_call_forensics, 55, 'SEC EDGAR / Seeking Alpha', srcEdgar);
- 
+
+  // ── Management notes (~75% affidabile per S&P500) ───────────────────────
+  setTextareaC('a_mgmt', data.management_notes, 75, 'SEC EDGAR earnings releases', srcEdgar);
+
+  // ── Contesto settore (qualitativo — 75%) ────────────────────────────────
+  setTextareaC('a_context', data.contesto_settore, 75, 'knowledge base AI / notizie settore', srcFinviz);
+
+  // ── Earnings call forensics (~70% affidabile) ────────────────────────────
+  setTextareaC('a_transcript', data.earnings_call_forensics, 70, 'SEC EDGAR / Seeking Alpha', srcEdgar);
+
   // ── Channel Check (~50% affidabile) ─────────────────────────────────────
   if (data.channel_check) {
     const cc = data.channel_check;
     const ccSrc = 'report analisti / notizie settore';
     const ccUrl = srcFinviz;
-    setSelectC('cc_overstocked', cc.overstocked, 50, ccSrc, ccUrl);
-    setSelectC('cc_promos',      cc.promos,      50, ccSrc, ccUrl);
-    setSelectC('cc_stale',       cc.stale,       50, ccSrc, ccUrl);
-    setSelectC('cc_traffic',     cc.traffic,     50, ccSrc, ccUrl);
-    setSelectC('cc_comps_lean',  cc.comps_lean,  50, ccSrc, ccUrl);
-    setSelectC('cc_staff',       cc.staff,       50, ccSrc, ccUrl);
+    setSelectC('cc_overstocked', cc.overstocked, 68, ccSrc, ccUrl);
+    setSelectC('cc_promos',      cc.promos,      68, ccSrc, ccUrl);
+    setSelectC('cc_stale',       cc.stale,       68, ccSrc, ccUrl);
+    setSelectC('cc_traffic',     cc.traffic,     68, ccSrc, ccUrl);
+    setSelectC('cc_comps_lean',  cc.comps_lean,  68, ccSrc, ccUrl);
+    setSelectC('cc_staff',       cc.staff,       68, ccSrc, ccUrl);
     if (cc.notes) {
       const el = document.getElementById('cc_notes');
       if (el) {
@@ -1642,14 +1648,14 @@ REGOLE CRITICHE:
       }
     }
   }
- 
+
   } // fine if (data) — sezioni qualitative
- 
+
   updateLiveChart();
   updateBermanScore();
- 
+
   const affColor = data?.affidabilita === 'alta' ? 'var(--green)' : data?.affidabilita === 'media' ? 'var(--yellow)' : 'var(--red)';
- 
+
   // Costruisce la sezione fonti
   let fontiHtml = '';
   if (data && Array.isArray(data.fonti) && data.fonti.length) {
@@ -1667,11 +1673,11 @@ REGOLE CRITICHE:
       <div style="font-size:12px;color:var(--text2);">Inventario · COGS · Ricavi · GM% · AP · OCF · AR estratti direttamente dal database XBRL della SEC — accuratezza ≥92%</div>
     </div>` + fontiHtml;
   }
- 
+
   const secBadge = secData
     ? `<span style="background:#dcfce7;color:#15803d;border:1px solid #86efac;border-radius:12px;padding:2px 10px;font-weight:700;font-size:11px;margin-left:8px;">🏛 Dati SEC EDGAR reali</span>`
     : `<span style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;border-radius:12px;padding:2px 10px;font-weight:700;font-size:11px;margin-left:8px;">🤖 Stima AI (SEC non disponibile)</span>`;
- 
+
   msg.innerHTML = `✅ Dati caricati: <strong>${n} trimestri</strong> per <strong>${(data && data.company) || ticker}</strong> ${secBadge}
     ${data ? `· Affidabilità: <span style="color:${affColor};font-weight:700;">${data.affidabilita || 'N/D'}</span>
     · Aggiornato a: <strong>${data.data_aggiornamento || 'N/D'}</strong>` : ''}
@@ -1687,7 +1693,7 @@ REGOLE CRITICHE:
   result.style.display = 'block';
   buildEdgarLinks(ticker, links);
 }
- 
+
 function buildEdgarLinks(ticker, container) {
   const name = (ticker || '').toLowerCase().replace(/[^a-z0-9]/g,'');
   container.innerHTML = `
@@ -1698,7 +1704,7 @@ function buildEdgarLinks(ticker, container) {
     <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${ticker}&type=10-Q&dateb=&owner=include&count=10" target="_blank" style="text-decoration:none;">
       <button class="secondary-btn">🏛 SEC EDGAR — 10-Q Ufficiali</button></a>`;
 }
- 
+
 function matchSector(raw) {
   const r = (raw || '').toLowerCase();
   if (r.includes('scarpe') || r.includes('footwear') || r.includes('shoe')) return 'Scarpe / Footwear';
@@ -1713,7 +1719,7 @@ function matchSector(raw) {
   if (r.includes('general') || r.includes('discount') || r.includes('warehouse')) return 'General merchandise';
   return '';
 }
- 
+
 // ===== COMPETITOR HELPERS =====
 function addComp(containerId) {
   const c = document.getElementById(containerId);
@@ -1739,7 +1745,7 @@ function compTable(comps) {
   return '| Competitor | DSI (gg) | Inv/Sales | GM% | SSS% |\n|---|---|---|---|---|\n' +
     comps.map(c => `| ${c.name} | ${c.dsi} | ${c.invS} | ${c.gm} | ${c.sss} |`).join('\n');
 }
- 
+
 // ===== SECTOR INTEL =====
 async function fetchSectorIntel(sectorElId, btnId, boxId) {
   const sector = document.getElementById(sectorElId).value || 'retail generico';
@@ -1754,7 +1760,7 @@ async function fetchSectorIntel(sectorElId, btnId, boxId) {
   } catch(e) { box.textContent = 'Errore. Riprova.'; }
   btn.disabled = false; btn.innerHTML = '🧠 Aggiorna benchmark';
 }
- 
+
 // ===== FILE UPLOAD =====
 const fileContents = {};
 function dzOver(e, id) { e.preventDefault(); document.getElementById(id).classList.add('over'); }
@@ -1786,7 +1792,7 @@ function readAndStore(file, dzId, fnId, contentId) {
 function getContent(contentId) {
   return fileContents[contentId] || (document.getElementById(contentId) ? document.getElementById(contentId).value.trim() : '');
 }
- 
+
 // ===== LIVE CHART =====
 let liveChartObj = null;
 function updateLiveChart() {
@@ -1817,7 +1823,29 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#tab-analyzer .inv,.inv,.cogs,.sales,.ql').forEach(el => el.addEventListener('input', updateLiveChart));
   updateLiveChart();
 });
- 
+
+// ===== SYNC BERMAN SCORE GAUGE CON VERDETTO AI =====
+function syncScoreFromAI(text) {
+  // Estrae "PROBABILITÀ LONG: XX" dall'output AI
+  const match = text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
+  if (!match) return;
+  const prob = Math.max(1, Math.min(100, parseInt(match[1])));
+
+  let color, label;
+  if (prob >= 75)      { color = 'var(--green)'; label = 'STRONG LONG 🟢'; }
+  else if (prob >= 65) { color = 'var(--green)'; label = 'LONG 🟢'; }
+  else if (prob >= 36) { color = 'var(--yellow)'; label = 'NEUTRAL ⏸'; }
+  else if (prob >= 25) { color = 'var(--red)';   label = 'SHORT 🔴'; }
+  else                 { color = 'var(--red)';   label = 'STRONG SHORT 🔴'; }
+
+  const valEl   = document.getElementById('scoreTotalVal');
+  const lblEl   = document.getElementById('scoreTotalLabel');
+  const barEl   = document.getElementById('scoreGaugeBar');
+  if (valEl)  { valEl.textContent = prob + '/100'; valEl.style.color = color; }
+  if (lblEl)  { lblEl.textContent = '⚡ ' + label + ' (AI)'; lblEl.style.color = color; }
+  if (barEl)  { barEl.style.width = prob + '%'; barEl.style.background = color; }
+}
+
 // ===== RENDER RESULT =====
 function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
   const fmt = text
@@ -1834,15 +1862,15 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
   else if (text.includes('❌ SHORT') || text.toUpperCase().includes('VERDETTO: SHORT')) { sigEl.innerHTML='<span class="signal short">❌ SHORT</span>'; verdict='SHORT'; }
   else sigEl.innerHTML='<span class="signal neutral">⏸ NEUTRAL</span>';
   const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='block';
- 
+
   // Red flags semaforo
   const rfId = contentId === 'resultContentA' ? 'redFlagsA' : contentId === 'resultContentU' ? 'redFlagsU' : null;
   if (rfId) renderRedFlags(text, rfId);
- 
+
   // Probability meter
   const pmId = contentId === 'resultContentA' ? 'probMeterA' : contentId === 'resultContentU' ? 'probMeterU' : null;
   if (pmId) renderProbMeter(text, pmId);
- 
+
   // Auto-save to history
   try {
     const titleEl = document.getElementById(titleId);
@@ -1856,18 +1884,21 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
     const conviction = detectConviction(text);
     saveToHistory(company, sector, verdict, dsiLast, dsiTrend, conviction, text);
   } catch(e) { /* history save failure is non-critical */ }
+
+  // Sincronizza il Live Berman Score gauge con il verdetto AI
+  syncScoreFromAI(text);
 }
- 
+
 // ===== PROBABILITY METER =====
 function renderProbMeter(text, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
- 
+
   // Extract PROBABILITÀ LONG score from AI output
   const match = text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
   if (!match) { container.innerHTML = ''; return; }
   const score = Math.max(1, Math.min(100, parseInt(match[1])));
- 
+
   // Determine zone
   const isShort  = score <= 35;
   const isLong   = score >= 65;
@@ -1879,7 +1910,7 @@ function renderProbMeter(text, containerId) {
     : isLong
     ? `Probabilità LONG ${score}% — segnale LONG (65–100)`
     : `Probabilità LONG ${score}% — zona NEUTRAL (36–64)`;
- 
+
   container.innerHTML = `
     <div class="prob-meter-wrap">
       <div class="prob-meter-title">🎯 Probabilità LONG — Scala 1→100</div>
@@ -1913,7 +1944,7 @@ function renderProbMeter(text, containerId) {
       </div>
     </div>`;
 }
- 
+
 // ===== SCHEDULE MONITOR =====
 function scheduleMonitor(titleId) {
   const company = document.getElementById(titleId).textContent.replace('Analisi Berman — ','').replace('Analisi Comparativa Berman','').trim() || 'questa azienda';
@@ -1924,7 +1955,7 @@ function scheduleMonitor(titleId) {
     alert(`📅 Monitoraggio trimestrale per ${company}:\n\n${reminder}`);
   });
 }
- 
+
 // ===== MANUAL ANALYSIS =====
 async function runManualAnalysis() {
   const company = document.getElementById('a_company').value || 'N/D';
@@ -1967,7 +1998,7 @@ async function runManualAnalysis() {
     ccVal('cc_staff')       ? `Qualità store: ${ccVal('cc_staff')}` : '',
     (document.getElementById('cc_notes')||{}).value ? `Note: ${(document.getElementById('cc_notes')||{}).value}` : '',
   ].filter(Boolean).join(' | ');
- 
+
   const ql = [...document.querySelectorAll('#tab-analyzer .ql')].map(e=>e.value||'');
   const inv = [...document.querySelectorAll('#tab-analyzer .inv')].map(e=>parseFloat(e.value)||0);
   const cogs= [...document.querySelectorAll('#tab-analyzer .cogs')].map(e=>parseFloat(e.value)||0);
@@ -1978,10 +2009,10 @@ async function runManualAnalysis() {
   const ocf = [...document.querySelectorAll('#tab-analyzer .ocf')].map(e=>parseFloat(e.value)||0);
   const ar  = [...document.querySelectorAll('#tab-analyzer .ar')].map(e=>parseFloat(e.value)||0);
   const nd  = [...document.querySelectorAll('#tab-analyzer .nd')].map(e=>parseFloat(e.value)||0);
- 
+
   const hasData = inv.some(v=>v>0) || sal.some(v=>v>0);
   if (!hasData) { alert('Inserisci almeno inventario e vendite per qualche trimestre.'); return; }
- 
+
   // Data quality check
   const filledQ = inv.filter(v=>v>0).length;
   const hasCogs = cogs.some(v=>v>0), hasSal = sal.some(v=>v>0), hasAP = ap.some(v=>v>0), hasOCF = ocf.some(v=>v>0);
@@ -1992,7 +2023,7 @@ async function runManualAnalysis() {
   if (!hasCogs) dataQuality += ' | ⚠️ COGS mancante (DSI non calcolabile)';
   if (!hasAP) dataQuality += ' | ⚠️ AP mancante (analisi fornitori incompleta)';
   if (!hasOCF) dataQuality += ' | ⚠️ OCF mancante (cash flow non analizzabile)';
- 
+
   // Compute DSI and YoY
   const dsiArr = inv.map((v,i)=>cogs[i]>0?v/cogs[i]*90:0);
   let yoyRows = '';
@@ -2006,7 +2037,7 @@ async function runManualAnalysis() {
       yoyRows += `| ${ql[i]||'T'+(i+1)} vs ${ql[i-4]||'T'+(i-3)} | DSI YoY: ${yoyDsi} | Inv YoY: ${invYoy} | Sales YoY: ${salYoy} | AP YoY: ${apYoy} |\n`;
     }
   }
- 
+
   let tableRows = '';
   for (let i=0; i<12; i++) {
     if (inv[i]||sal[i]||cogs[i]) {
@@ -2016,14 +2047,14 @@ async function runManualAnalysis() {
     }
   }
   const comps = getCompData('compRowsA');
- 
+
   // AP, OCF, AR, ND rows for prompt
   let apRows = '', ocfRows = '', arRows = '', ndRows = '';
   for(let i=0;i<12;i++){if(ap[i]) apRows+=`${ql[i]||'T'+(i+1)}: $${ap[i]}M | `;}
   for(let i=0;i<12;i++){if(ocf[i]) ocfRows+=`${ql[i]||'T'+(i+1)}: $${ocf[i]}M | `;}
   for(let i=0;i<12;i++){if(ar[i]) arRows+=`${ql[i]||'T'+(i+1)}: $${ar[i]}M | `;}
   for(let i=0;i<12;i++){if(nd[i]) ndRows+=`${ql[i]||'T'+(i+1)}: $${nd[i]}M | `;}
- 
+
   // Second-derivative DSI (acceleration/deceleration of YoY change)
   const dsiYoY = [];
   for(let i=4;i<12;i++) {
@@ -2037,7 +2068,7 @@ async function runManualAnalysis() {
       d2dsiStr += `${dsiYoY[i].q}: YoY=${dsiYoY[i].delta.toFixed(1)}% | Δ accelerazione=${acc}pp | `;
     }
   }
- 
+
   // Multi-quarter signal confirmation
   const yoyDeltas = dsiYoY.filter(Boolean);
   const lastFour = yoyDeltas.slice(-4);
@@ -2047,12 +2078,12 @@ async function runManualAnalysis() {
   if(risingConsec>=2) multiQConf = `⚠️ DSI YoY in territory >+10% per ${risingConsec}/4 trimestri recenti — conferma multi-quarter SHORT.`;
   else if(fallingConsec>=2) multiQConf = `✅ DSI YoY in territory <-10% per ${fallingConsec}/4 trimestri recenti — conferma multi-quarter LONG.`;
   else multiQConf = 'Segnale non ancora confermato su base multi-quarter (serve ≥2 trimestri consecutivi oltre soglia).';
- 
+
   // EPS history & GM normal for miss calculator
   const epsHistArr = [epsQ1,epsQ2,epsQ3,epsQ4].filter(Boolean);
   const epsAnnualized = epsHistArr.length===4 ? epsHistArr.reduce((a,b)=>parseFloat(a)+parseFloat(b),0).toFixed(2) : '';
   const epsHistStr = epsHistArr.length ? `EPS ultimi 4 trim.: $${epsQ1||'?'} | $${epsQ2||'?'} | $${epsQ3||'?'} | $${epsQ4||'?'} | Totale LTM: $${epsAnnualized}` : '';
- 
+
   // GM hidden impairment (pre-calculated for prompt)
   let hiddenImpairmentStr = '';
   if (gmNormal && gm.some(v=>v>0)) {
@@ -2063,7 +2094,7 @@ async function runManualAnalysis() {
     hiddenImpairmentStr = `GM% normalizzato storico (pre-build): ${gmNormal}% | GM% attuale riportato: ${lastGm}% | Gap: ${gmGap}pp | Svalutazione implicita stimata: $${impliedMarkdown}M su vendite $${lastSale}M`;
     if(shares) hiddenImpairmentStr += ` | EPS impact stimato: -$${(impliedMarkdown/parseFloat(shares)).toFixed(2)}/sh (${shares}M shares)`;
   }
- 
+
   // Own-company DSI percentile rank (within own 12Q history)
   const validDsiAll = dsiArr.filter(v=>v>0).sort((a,b)=>a-b);
   const lastDsiVal  = dsiArr.filter(v=>v>0).slice(-1)[0] || 0;
@@ -2073,7 +2104,7 @@ async function runManualAnalysis() {
     dsiPctRank = Math.round(below/validDsiAll.length*100);
   }
   const dsiPctStr = validDsiAll.length>=4 ? `DSI attuale (${lastDsiVal.toFixed(0)} gg) al ${dsiPctRank}° percentile della propria storia (${validDsiAll.length} trimestri)` : '';
- 
+
   // Analyst revision momentum
   const revNet = (parseInt(revDown)||0) - (parseInt(revUp)||0);
   let revMomentumStr = '';
@@ -2083,7 +2114,7 @@ async function runManualAnalysis() {
     else if (revNet === 0 && !revDown) revMomentumStr = `Nessuna revisione recente → mercato ignora il segnale → MASSIMO ALPHA POTENZIALE`;
     else revMomentumStr = `Revisioni: ${revDown||0} al ribasso, ${revUp||0} al rialzo → momentum neutro`;
   }
- 
+
   // Store count normalization
   let storeNormStr = '';
   if (storeDelta) {
@@ -2092,7 +2123,7 @@ async function runManualAnalysis() {
                   sd > 3  ? `Store count +${sd}% YoY → inventario cresce per espansione, non problema strutturale → normalizza DSI` :
                   `Store count stabile (${sd}% YoY) → build-up inventario è strutturale, non da espansione`;
   }
- 
+
   // Timing gate
   let timingStr = '';
   if (daysToEarn) {
@@ -2102,7 +2133,7 @@ async function runManualAnalysis() {
                d <= 70  ? `⚠️ TIMING ANTICIPATO: ${d} giorni agli utili — entra in tranche (50% ora, 50% a 30gg)` :
                `📅 TIMING PREMATURO: ${d} giorni agli utili — aspetta altri ${d-45} giorni prima di entrare`;
   }
- 
+
   // DTC factor
   let dtcStr = '';
   if (dtcPct) {
@@ -2111,7 +2142,7 @@ async function runManualAnalysis() {
              d > 20 ? `DTC/online ${d}% → flessibilità media` :
              `DTC/online ${d}% → prevalentemente wholesale → minor controllo inventory → aumenta rischio markdown (+5pp P(miss))`;
   }
- 
+
   // Valuation string
   const valuationStr = [
     peFwd    ? `P/E Forward: ${peFwd}x` : '',
@@ -2125,7 +2156,7 @@ async function runManualAnalysis() {
     mgmtMisses ? `Guidance mancate (8 trim.): ${mgmtMisses}/8` : '',
     dsiPctStr ? dsiPctStr : ''
   ].filter(Boolean).join(' | ');
- 
+
   // Show data quality warning in UI
   const dqEl = document.getElementById('dataQualityBar');
   if (dqEl) {
@@ -2134,13 +2165,13 @@ async function runManualAnalysis() {
     dqEl.className = isGood ? 'success-box' : 'warn-box';
     dqEl.innerHTML = `📊 <strong>Qualità dati:</strong> ${dataQuality}`;
   }
- 
+
   const rb=document.getElementById('resultBoxA'), rc=document.getElementById('resultContentA'),
         ld=document.getElementById('loadingA'), mw=document.getElementById('monitorBtnWrapA');
   rb.style.display='block'; ld.style.display='flex'; rc.innerHTML=''; mw.style.display='none';
   document.getElementById('resultTitleA').textContent=`Analisi Berman — ${company} (${ticker})`;
   rb.scrollIntoView({behavior:'smooth',block:'start'});
- 
+
   const prompt = buildBermanPrompt(company, ticker, sector, stores, price, pe, tableRows, comps, intel, transcript, mgmt, context, yoyRows, apRows, ocfRows, dataQuality, arRows, ndRows, d2dsiStr, multiQConf, channelCheck, valuationStr, hiddenImpairmentStr, gmNormal, epsCons, shares, revMomentumStr, storeNormStr, timingStr, dtcStr, dsiPctStr, mgmtMisses);
   try {
     const r = await callAI(prompt);
@@ -2148,90 +2179,90 @@ async function runManualAnalysis() {
     renderResult(r,'resultTitleA','resultSignalA','resultContentA','monitorBtnWrapA');
   } catch(e) { ld.style.display='none'; rc.innerHTML=`<span style="color:var(--red);">Errore: ${e.message||'Riprova'}</span>`; }
 }
- 
+
 function buildBermanPrompt(company,ticker,sector,stores,price,pe,tableRows,comps,intel,transcript,mgmt,context,yoyRows,apRows,ocfRows,dataQuality,arRows,ndRows,d2dsiStr,multiQConf,channelCheck,valuationStr,hiddenImpairmentStr,gmNormal,epsCons,shares,revMomentumStr,storeNormStr,timingStr,dtcStr,dsiPctStr,mgmtMisses) {
   const hasTranscript = !!transcript;
   let sectionNum = 1;
   const sec = () => sectionNum++;
- 
+
   return `Sei un analista finanziario quantitativo esperto nel Metodo Berman di analisi degli inventari retail. Metodologia validata da HBS Case 605-081 (Durban Capital) e da Gaur, Alan & Gao (Management Science, 2014): portafoglio long-short su inventario retail genera >1%/mese di rendimento anomalo su 26 anni di dati USA.
- 
+
 REGOLA D'ORO: non guardi mai un'azienda nel vuoto. La confronti sempre con il settore e i competitor. Il verdetto finale DEVE rispondere: il problema è AZIENDALE o SETTORIALE? Se settoriale, la posizione short è pericolosa.
- 
+
 SOGLIA DI CONVINZIONE ASSOLUTA (aggiornata per 90%+ hit rate): emetti ✅ LONG solo se Punteggio Aggregato ≥70/100 E ≥6 segnali su 9 concordi in direzione long. Emetti ❌ SHORT solo se ≤30/100 E ≥6 segnali su 9 concordi in direzione short. In tutti gli altri casi OBBLIGATORIAMENTE: ⏸ NEUTRAL. Non esistono eccezioni. Un NEUTRAL sbagliato non perde denaro. Un LONG/SHORT sbagliato sì.
- 
+
 MULTI-QUARTER CONFIRMATION (input calcolato): ${multiQConf}
 → Un segnale valido richiede ≥2 trimestri consecutivi sopra/sotto soglia. Se il segnale è mono-trimestrale, abbassi la convinzione di 10pp.
- 
+
 ═══════════════════════════════════════════
 DATI AZIENDA TARGET
 ═══════════════════════════════════════════
 ${company} (${ticker}) | Settore: ${sector} | Negozi: ${stores} | Prezzo: $${price} | P/E: ${pe}x
 Qualità dati: ${dataQuality}
 ${valuationStr ? `Valutazione: ${valuationStr}` : ''}
- 
+
 ═══════════════════════════════════════════
 DATI QUANTITATIVI — 12 TRIMESTRI
 ═══════════════════════════════════════════
 | Trimestre | Inventario | COGS | Vendite | GM% | DSI calc. | Inv/Sales | SSS% | AP | OCF |
 |---|---|---|---|---|---|---|---|---|---|
 ${tableRows}
- 
+
 VARIAZIONI YoY (elimina stagionalità — usa SEMPRE Q vs Q-4):
 ${yoyRows || 'Calcola dalla tabella sopra.'}
- 
+
 ACCOUNTS PAYABLE: ${apRows || 'vedi tabella'}
 OPERATING CASH FLOW: ${ocfRows || 'vedi tabella'}
 ACCOUNTS RECEIVABLE: ${arRows || 'non forniti'}
 NET DEBT (Debito Netto): ${ndRows || 'non forniti'}
- 
+
 SECONDA DERIVATA DSI (accelerazione/decelerazione del trend):
 ${d2dsiStr || 'Calcola: Δ(DSI_YoY_T) - Δ(DSI_YoY_T-1). Se positiva = accelerazione build-up; se negativa = decelerazione = potenziale svolta.'}
- 
+
 DSI PERCENTILE RANK (nell'istoria propria dell'azienda):
 ${dsiPctStr || 'Calcola dalla tabella sopra: dove si colloca il DSI attuale rispetto ai 12 trimestri forniti?'}
 → >85° percentile = outlier storico per questa azienda = segnale molto affidabile
 → <30° percentile = DSI storicamente lean per questa azienda = segnale long affidabile
 → 30°-85° percentile = territorio normale, richiedi conferma da altri segnali
- 
+
 SEGNALI DI MERCATO AVANZATI:
 ${revMomentumStr || 'Revisioni analisti non fornite — valuta se segnale già prezzato dalla tua knowledge base.'}
 ${storeNormStr || 'Store count delta non fornito — verifica se DSI inflato da chiusure store.'}
 ${timingStr || 'Data earnings non fornita — raccomanda timing ottimale basandoti sul ciclo trimestrale.'}
 ${dtcStr || 'Mix DTC non fornito — stima dalla natura del business.'}
 ${mgmtMisses ? `Track record management: ${mgmtMisses}/8 guidance mancate negli ultimi 8 trimestri.` : ''}
- 
+
 ═══════════════════════════════════════════
 DATABASE COMPETITOR E BENCHMARK SETTORE
 ═══════════════════════════════════════════
 ${compTable(comps)}
 ${intel || 'Usa la tua knowledge base per i benchmark di settore.'}
- 
+
 ${transcript ? `═══════════════════════════════════════════\nEARNINGS CALL / MD&A TRASCRIZIONE\n═══════════════════════════════════════════\n${transcript.substring(0,4000)}\n` : ''}
 ${mgmt ? `NOTE MANAGEMENT: ${mgmt}\n` : ''}
 ${context ? `CONTESTO MACRO/SETTORE: ${context}\n` : ''}
 ${channelCheck ? `CHANNEL CHECK (osservazione qualitativa): ${channelCheck}\n` : ''}
- 
+
 ═══════════════════════════════════════════
 STRUTTURA RISPOSTA OBBLIGATORIA
 (parti immediatamente, zero preamboli)
 ═══════════════════════════════════════════
- 
+
 ## ${sec()}. TABELLA COMPARATIVA SETTORIALE
 | Azienda | DSI (gg) | YoY DSI Δ% | Inv/Sales | GM% | SSS% | AP Trend | Giudizio |
 Includi: target, tutti i competitor, MEDIA SETTORE, BENCHMARK STORICO.
 → SOPRA / IN LINEA / SOTTO rispetto al benchmark per ogni metrica.
 Conclusione netta: "Il problema è AZIENDALE / SETTORIALE / MISTO" con motivazione in 2 righe.
- 
+
 ## ${sec()}. SECONDA DERIVATA DSI — ACCELERAZIONE/DECELERAZIONE
 Calcola: Δ² = Δ(DSI_YoY trimestre corrente) - Δ(DSI_YoY trimestre precedente).
 Se Δ² positiva per ≥2 trimestri = build-up accelera = timing short ottimale.
 Se Δ² negativa per ≥2 trimestri = build-up rallenta = potenziale svolta = non aprire nuovi short.
 Dati calcolati: ${d2dsiStr || 'estrai dalla tabella'}
 Verdict: "Accelerazione / Decelerazione / Inversione" con quantificazione precisa.
- 
+
 ## ${sec()}. SCORECARD BERMAN — 9 SEGNALI (OBBLIGATORIO, ogni punteggio giustificato con numeri)
- 
+
 | # | Segnale | Score (0-10) | Calcolo/Ragionamento |
 |---|---------|-------------|----------------------|
 | 1 | DSI Trend YoY | /10 | DSI_T12 vs DSI_T8: Δ__% → |
@@ -2243,44 +2274,44 @@ Verdict: "Accelerazione / Decelerazione / Inversione" con quantificazione precis
 | 7 | AR vs Revenue | /10 | AR YoY __% vs Rev YoY __% → channel stuffing: |
 | 8 | Net Debt leverage | /10 | ND/EBITDA__ → amplificazione rischio margin collapse: |
 | 9 | Linguaggio Management | /10 | Frasi evasive/trasparenti (cita): → |
- 
+
 **PUNTEGGIO AGGREGATO PONDERATO:**
 (DSI×2.5 + Inv/Sales×2 + SSS×1.5 + GM×1.5 + AP×0.75 + OCF×0.75 + AR×0.5 + ND×0.5 + Mgmt×0.5) / 10 = ___/100
 → ≥70 + ≥6 segnali concordi: ✅ LONG | ≤30 + ≥6 segnali concordi: ❌ SHORT | tutto il resto: ⏸ NEUTRAL (obbligatorio)
- 
+
 ## ${sec()}. FILTRO CONSENSO MULTI-SEGNALE (GATE OBBLIGATORIO prima del verdetto)
 Conta quanti dei 9 segnali della Scorecard puntano LONG (score ≥6/10) e quanti SHORT (score ≤4/10).
 Riporta: "X segnali LONG / Y segnali SHORT / Z neutrali (score 4-6)"
 REGOLA: se non hai ≥6 segnali concordi in UNA SOLA direzione → verdetto AUTOMATICAMENTE ⏸ NEUTRAL, indipendentemente dal punteggio aggregato.
 Questo filtro elimina i casi "quasi-LONG" e "quasi-SHORT" che storicamente generano il 70% degli errori.
- 
+
 ## ${sec()}. HIDDEN INVENTORY IMPAIRMENT CALCULATOR (Il segnale più predittivo)
 Questa è la sezione più importante dell'analisi. Quantifica la svalutazione d'inventario non ancora registrata a P&L.
- 
+
 ${hiddenImpairmentStr ? `Dati pre-calcolati: ${hiddenImpairmentStr}` : `Calcola manualmente:`}
- 
+
 **Step 1 — GM% Gap:**
 GM% normalizzato (periodo pre-build, DSI nella norma): ${gmNormal || '__'}%
 GM% attuale riportato (ultimo trim.): __%
 Gap = GM% normale - GM% attuale = __ pp
 Se Gap < 0 (margine attuale > normale): il management non ha ancora preso i markdown → svalutazione latente.
- 
+
 **Step 2 — Svalutazione Latente Stimata:**
 Svalutazione latente ($M) = |Gap %| × Vendite ultimo trim. ($M) = $__M
 Questa cifra non è ancora nel P&L. Quando verrà registrata, comprimerà i margini.
- 
+
 **Step 3 — Impatto EPS:**
 ${shares ? `EPS impact per share = Svalutazione latente / ${shares}M shares = -$__/share` : 'EPS impact = Svalutazione latente / Shares outstanding = -$__/share'}
 ${epsCons ? `EPS Consenso attuale: $${epsCons} → EPS post-markdown stimato: $__ → miss vs consenso: __%` : 'Confronta con EPS consenso per calcolare il miss implicito.'}
- 
+
 **Step 4 — Timing:**
 Con DSI attuale al livello rilevato, storicamente i markdown arrivano entro __ trimestri (usa benchmark settoriale).
 Probabilità di profit warning nei prossimi 2 trimestri: __%
- 
+
 ## ${sec()}. EPS MISS PROBABILITY CALCULATOR
 Usa la seguente formula calibrata su 26 anni di dati Gaur-Alan-Gao:
 P(miss) = base_rate_settore × (1 + DSI_YoY_delta/100) × multiplier_AR × multiplier_ND
- 
+
 Base rates per settore (da letteratura):
 - Abbigliamento/Footwear: 68% base P(miss) quando DSI YoY >+20%
 - Elettronica consumer: 71%
@@ -2288,20 +2319,20 @@ Base rates per settore (da letteratura):
 - General merchandise: 62%
 - Grocery: 40% (margini meno discrezionali)
 - Lusso: 45% (pricing power protegge margini)
- 
+
 Multiplier AR: se AR YoY > Revenue YoY → ×1.25 (channel stuffing amplifica)
 Multiplier ND: se ND/EBITDA >3x → ×1.15 (covenant risk accelera decisioni)
 Multiplier Sector: se problema SETTORIALE → ×0.70 (il mercato già sconta parzialmente)
 Multiplier Multi-Quarter: se segnale confermato ≥3 trimestri → ×1.20
- 
+
 **CALCOLO FINALE:**
 P(earnings miss entro 2 trim.) = __ × __ × __ × __ × __ = __%
 P(profit warning formale entro 2 trim.) = P(miss) × 0.60 = __%
 P(stock -20%+ entro 6 mesi se SHORT) = __%
 P(stock +15%+ entro 6 mesi se LONG) = __%
- 
+
 Se P(miss) < 55% → abbassa convinzione di un livello. Se P(miss) > 75% → alza convinzione.
- 
+
 ## ${sec()}. REGRESSIONE A MEDIA DSI SETTORIALE (Timing Precision)
 DSI attuale del target: __ gg | DSI medio settore: __ gg | Z-score: (DSI_target - DSI_media) / DSI_stddev = __
 Interpretazione Z-score:
@@ -2310,38 +2341,38 @@ Interpretazione Z-score:
 - Z < +1.0: build-up modesto, probabilmente NEUTRAL
 - Z < -1.5: lean estremo, 78%+ hit rate per LONG
 Stima DSI medio e stddev di settore dalla tua knowledge base per ${sector}.
- 
+
 ## ${sec()}. REVISIONI ANALISTI — ALPHA GIÀ PREZZATO O ANCORA LATENTE?
 ${revMomentumStr || 'Stima dalla tua knowledge base se il consenso di settore ha già rivisto le stime al ribasso.'}
- 
+
 REGOLA CRITICA PER IL WIN RATE:
 - Se ≥3 revisioni al ribasso negli ultimi 90 giorni → il mercato sa già → riduce P(outperformance SHORT) del 35%. Considera NEUTRAL o wait.
 - Se 0 revisioni nonostante DSI in territorio critico → MASSIMO ALPHA → conferma convinzione.
 - Se revisioni AL RIALZO mentre DSI peggiora → analisti ancora ottimisti → SHORT con massima convinzione.
 Quantifica: "Il segnale è __% già prezzato → alpha residuo stimato: __pp di rendimento"
- 
+
 ## ${sec()}. NORMALIZZAZIONE STORE COUNT & MIX DTC
 ${storeNormStr || 'Analizza se la variazione store count spiega parte del DSI.'}
 ${dtcStr || 'Stima impatto DTC sulla gestione inventory.'}
- 
+
 DSI STORE-ADJUSTED:
 Se store count è cambiato significativamente YoY, l'inventario aggregato sale/scende per motivi strutturali.
 DSI_adjusted = (Inventario_totale / N_negozi_attuale) / (COGS_trim / N_negozi_precedente) × 90
 Confronta DSI_raw vs DSI_adjusted. Se divergono >15%: la variazione store count spiega parte del segnale → riduci convinzione.
- 
+
 ## ${sec()}. MANAGEMENT CREDIBILITY SCORE & TRACK RECORD
 ${mgmtMisses ? `Guidance mancate: ${mgmtMisses}/8 trim. (${Math.round(parseInt(mgmtMisses)/8*100)}% miss rate)` : 'Stima il track record dalla tua knowledge base per questa azienda.'}
- 
+
 SCORING MANAGEMENT CREDIBILITY:
 - 0/8 miss: management affidabile → riduce P(miss) imminente del 10%
 - 1-2/8 miss: normale, nessuna correzione
 - 3-4/8 miss: management inaffidabile → +15pp P(miss) → rinforza SHORT
 - 5+/8 miss: "serial mis-guider" → +25pp P(miss) → SHORT convinzione alta
 Analizza il tono: usa frasi di razionalizzazione? Ha un pattern di ottimismo sistematico?
- 
+
 ## ${sec()}. TIMING OTTIMALE — ENTRY GATE
 ${timingStr || 'Calcola timing ottimale basandoti su 38 giorni pre-earnings come default Berman.'}
- 
+
 REGOLA TIMING BERMAN:
 - <14 giorni a earnings: ⛔ NON APRIRE nuove posizioni. Troppo vicino — theta su opzioni, gap risk su azioni.
 - 14-24 giorni: ⚠️ Solo se convinzione ALTA (score ≥80) — usa dimensione ridotta (50% del sizing normale)
@@ -2349,26 +2380,26 @@ REGOLA TIMING BERMAN:
 - 46-70 giorni: ✅ Entra in 2 tranche: 50% ora, 50% a 30gg da earnings.
 - >70 giorni: 📅 PREMATURO. Rischio che il segnale si risolva prima del repricing. Aspetta.
 Strumento raccomandato in base al timing: azioni / CFD / put options (specificare scadenza ottimale).
- 
+
 ## ${sec()}. ANALISI ACCOUNTS PAYABLE
 AP↓ + Inv↑ = auto-finanziamento del problema → RED FLAG SHORT (+3pp probabilità miss).
 AP↑ proporzionale a Inv↑ = fornitori co-finanziano = meno pericoloso.
 AP↓ + Inv↓ = lean confermato dai fornitori → BULLISH.
 Calcola Δ AP YoY vs Δ Inv YoY → spread e implicazione sulla liquidità operativa.
- 
+
 ## ${sec()}. ANALISI ACCOUNTS RECEIVABLE — CHANNEL STUFFING
 AR YoY Δ > Revenue YoY Δ = ricavi push nel canale prima del sell-through reale → DOUBLE RED FLAG.
 Se sia AR che inventario salgono più dei ricavi: pattern di channel stuffing quasi certo.
 Dati: ${arRows || 'non forniti — segnala assenza e impatto sulla convinzione'}
 Conclusione: channel stuffing presente / assente / non determinabile.
- 
+
 ## ${sec()}. OPERATING CASH FLOW & NET DEBT
 OCF < Utile per ≥2 trimestri = inventario assorbe cassa → confirma SHORT.
 OCF > Utile = inventario rilascia cassa → confirma LONG.
 Net Debt: ND alto amplifica il danno di un margin collapse (covenant risk, refinancing wall).
 ${ndRows ? `ND trend: ${ndRows}` : 'Analizza leverage implicito dal trend patrimoniale.'}
 Se ND/EBITDA > 3x in scenario di margin compression: rischio default concettuale, position sizing max 4%.
- 
+
 ## ${sec()}. ANALISI VALUTAZIONE E SQUEEZE RISK
 ${valuationStr ? `Dati valutazione: ${valuationStr}` : 'Valutazione non fornita — stima P/E implicito dal prezzo/EPS.'}
 P/E Forward vs settore: premium / discount → impatto sul risk/reward della posizione.
@@ -2380,20 +2411,20 @@ Expected Value (Bull/Base/Bear):
 - Base scenario (prob __%)  : EPS inline, inventory normalizza lentamente → target $__
 - Bear scenario (prob __%)  : Profit warning + markdown → target $__ → R/R: __x
 **EV = (pBull × tBull) + (pBase × tBase) + (pBear × tBear) = $__ vs prezzo attuale $${price}**
- 
+
 ${channelCheck ? `## ${sec()}. CHANNEL CHECK QUALITATIVO\nInput: ${channelCheck}\nInterpretazione: scaffali sovra-carichi confermano build-up numerico? Promozioni aggressive anticipano markdown? Traffico in calo indipendente dall'inventario? Conclusione: "Channel check rinforza / contraddice / neutro rispetto al segnale quantitativo."\n` : ''}
- 
+
 ${hasTranscript ? `## ${sec()}. FORENSICS EARNINGS CALL\nCita 2-3 frasi specifiche della trascrizione con interpretazione word-by-word.\nRed flags linguistici: "strategic depth", "well-positioned for Q4", "supply chain normalization", "temporarily elevated".\nGreen flags: ammissione esplicita del problema + piano concreto di riduzione.\nPunteggio credibilità management: 1-10 con motivazione.\n` : ''}
- 
+
 ## ${sec()}. TESI CONTRARIA — DEVIL'S ADVOCATE (OBBLIGATORIO, minimo 5 righe)
 Costruisci il caso più forte possibile CONTRO il tuo verdetto.
 Se LONG: "Il rischio principale che invalida la tesi è ___. Trigger: ___. Probabilità: ___%."
 Se SHORT: "Il caso bull che invalida la posizione è ___. Trigger: ___. Probabilità: ___%."
 Se NEUTRAL: "Il catalizzatore che sblocca LONG è ___. Per SHORT è ___."
 Valuta anche: rischio squeeze (short interest), rischio M&A bid, rischio settore in ripresa macro rapida.
- 
+
 ## ${sec()}. RIEPILOGO 5 GATE — GO / NO-GO CHECK (tutti devono essere PASS per LONG o SHORT)
- 
+
 | Gate | Condizione | Risultato |
 |------|-----------|-----------|
 | Gate 1 — Punteggio | Score ≥70 (LONG) o ≤30 (SHORT) | PASS / FAIL |
@@ -2401,10 +2432,10 @@ Valuta anche: rischio squeeze (short interest), rischio M&A bid, rischio settore
 | Gate 3 — Multi-quarter | Segnale confermato ≥2 trimestri consecutivi | PASS / FAIL |
 | Gate 4 — Alpha residuo | Revisioni analisti NON già incorporate (≤2 ribasso) | PASS / FAIL |
 | Gate 5 — Timing | 14-70 giorni a earnings | PASS / FAIL |
- 
+
 Se anche UN SOLO gate è FAIL → verdetto OBBLIGATORIAMENTE ⏸ NEUTRAL.
 Questo meccanismo a 5 gate è la differenza tra 70% e 90%+ di hit rate.
- 
+
 ## ${sec()}. VERDETTO FINALE: ✅ LONG | ❌ SHORT | ⏸ NEUTRAL
 Gate superati: __/5 | Score: __/100 | Segnali concordi: __/9
 P(earnings miss nei prossimi 2 trim.): __% | P(stock move target entro 6 mesi): __%
@@ -2414,7 +2445,7 @@ Convinzione: ALTA (tutti 5 gate + score ≥75) / MEDIA (tutti 5 gate + score 55-
 1. "DSI +__% YoY vs competitor +__% → divergenza __ punti → __% probabilità earnings miss entro __ trimestri."
 2. ___
 3. ___
- 
+
 ## ${sec()}. SIZING, STRUMENTO E PIATTAFORMA
 - % portafoglio: _% (disciplina 4-8% medio; max 12% se convinzione ALTA + conferma multi-quarter)
 - Strumento: azioni / CFD long-short / put options — motivazione (se short interest >15% → put obbligatorie)
@@ -2423,26 +2454,26 @@ Convinzione: ALTA (tutti 5 gate + score ≥75) / MEDIA (tutti 5 gate + score 55-
 - Stop loss: trigger preciso (es. "se DSI YoY torna sotto +10% per 2 trimestri consecutivi → chiudi")
 - Target price se tesi corretta: $__ (metodo: __x EPS normalizzato stimato)
 - Risk/Reward: __:1
- 
+
 ## ${sec()}. MONITOR 10-Q PROSSIMO TRIMESTRE
 3 KPI con soglie precise da controllare appena esce il filing:
 1. [metrica] supera/scende sotto [soglia numerica] → perché conferma/invalida la tesi
 2. ___
 3. ___
 Data attesa del prossimo 10-Q: __ settimane. Impostare alert su SEC EDGAR per ${ticker}.
- 
+
 Rispondi in italiano. Massima densità. Ogni numero calcolato dai dati forniti, mai inventato.
- 
+
 ═══════════════════════════════════════════
 RIGA FINALE OBBLIGATORIA (ultima riga, nessun testo dopo)
 ═══════════════════════════════════════════
 PROBABILITÀ LONG: [numero da 1 a 100]
- 
+
 Scala: 1 = certezza assoluta SHORT | 35 = soglia SHORT/NEUTRAL | 50 = perfetto equilibrio | 65 = soglia NEUTRAL/LONG | 100 = certezza assoluta LONG
 Questo numero deve essere coerente con il verdetto e con il punteggio aggregato.
 Esempi: score 22/100 → PROBABILITÀ LONG: 18 | score 74/100 → PROBABILITÀ LONG: 72 | score 51/100 → PROBABILITÀ LONG: 51`;
 }
- 
+
 // ===== UPLOAD ANALYSIS =====
 async function runUploadAnalysis() {
   const company  = document.getElementById('u_company').value || 'N/D';
@@ -2451,16 +2482,16 @@ async function runUploadAnalysis() {
   const notes    = document.getElementById('u_notes').value || '';
   const intel    = document.getElementById('intelBoxU').innerText || '';
   const targetContent = getContent('targetContent');
- 
+
   if (!targetContent) { alert('Carica o incolla il bilancio dell\'azienda target.'); return; }
- 
+
   const compFiles = [];
   for (let i=0; i<5; i++) {
     const name = document.getElementById(`compName${i}`).value.trim();
     const content = getContent(`compContent${i}`);
     if (content) compFiles.push({ name: name || `Competitor ${i+1}`, content });
   }
- 
+
   const rb=document.getElementById('resultBoxU'), rc=document.getElementById('resultContentU'),
         ld1=document.getElementById('loadingU1'), ld2=document.getElementById('loadingU2'),
         mw=document.getElementById('monitorBtnWrapU'), cards=document.getElementById('extractedCardsU');
@@ -2468,15 +2499,15 @@ async function runUploadAnalysis() {
   rc.innerHTML=''; cards.style.display='none'; mw.style.display='none';
   document.getElementById('resultTitleU').textContent=`Analisi Comparativa Berman — ${company}`;
   rb.scrollIntoView({behavior:'smooth',block:'start'});
- 
+
   // Build one big prompt with all files
   let allFilesBlock = `═══ BILANCIO TARGET: ${company} ═══\n${targetContent.substring(0,8000)}\n`;
   compFiles.forEach((cf,i) => {
     allFilesBlock += `\n═══ BILANCIO COMPETITOR ${i+1}: ${cf.name} ═══\n${cf.content.substring(0,4000)}\n`;
   });
- 
+
   const extractPrompt = `Sei un analista finanziario esperto nell'estrarre dati strutturati da bilanci retail.
- 
+
 Dai testi seguenti estrai i dati finanziari chiave per ciascuna azienda. Rispondi SOLO con JSON valido:
 {
   "target": {"nome":"...","periodi":["Q1 2023",...],"inventario_M":[...],"cogs_M":[...],"vendite_M":[...],"gross_margin_pct":[...],"sss_pct":[...],"note":"..."},
@@ -2486,9 +2517,9 @@ Dai testi seguenti estrai i dati finanziari chiave per ciascuna azienda. Rispond
   ]
 }
 Usa null per valori non trovati. Array paralleli per ogni periodo.
- 
+
 ${allFilesBlock}`;
- 
+
   let extracted = null;
   try {
     const rawEx = await callAI(extractPrompt);
@@ -2496,7 +2527,7 @@ ${allFilesBlock}`;
     const jm = rawEx.match(/\{[\s\S]*\}/);
     if (jm) extracted = JSON.parse(jm[0]);
   } catch(e) { extracted = null; ld1.style.display='none'; }
- 
+
   // Show extracted metrics cards
   if (extracted && extracted.target) {
     cards.style.display='block';
@@ -2514,7 +2545,7 @@ ${allFilesBlock}`;
       <div class="metric-card gold"><div class="metric-label">Ultimo inventario</div><div class="metric-value">${lastInv?'$'+lastInv+'M':'N/D'}</div></div>
     </div>`;
   }
- 
+
   // Build competitor summary for prompt
   let compSummary = '';
   if (extracted && extracted.competitor) {
@@ -2530,10 +2561,10 @@ ${allFilesBlock}`;
     // fallback: use raw text
     compFiles.forEach(cf => compSummary += `| ${cf.name} | dati raw allegati |\n`);
   }
- 
+
   // Final Berman analysis with all data
   ld2.style.display='flex';
- 
+
   const targetSummary = extracted && extracted.target ? (() => {
     const t = extracted.target;
     let rows = '';
@@ -2546,22 +2577,22 @@ ${allFilesBlock}`;
     });
     return rows;
   })() : `Dati grezzi:\n${targetContent.substring(0,3000)}`;
- 
+
   const fullPrompt = `${buildBermanPrompt(company,'—',sector,'N/D','N/D','N/D',targetSummary,[],intel,transcript,'',notes)}
- 
+
 ═══ COMPETITOR ESTRATTI DAI FILE ═══
 | Competitor | DSI ultimo | GM% | SSS% |
 |---|---|---|---|
 ${compSummary}
 ${compFiles.map((cf,i)=>`\nDATI GREZZI ${cf.name}:\n${cf.content.substring(0,1500)}`).join('')}`;
- 
+
   try {
     const r = await callAI(fullPrompt);
     ld2.style.display='none';
     renderResult(r,'resultTitleU','resultSignalU','resultContentU','monitorBtnWrapU');
   } catch(e) { ld2.style.display='none'; rc.innerHTML=`<span style="color:var(--red);">Errore: ${e.message||'Riprova'}</span>`; }
 }
- 
+
 // ===== LIVE BERMAN SCORE =====
 function updateBermanScore() {
   const inv  = [...document.querySelectorAll('#tab-analyzer .inv')].map(e=>parseFloat(e.value)||0);
@@ -2573,7 +2604,7 @@ function updateBermanScore() {
   const card = document.getElementById('scoreLiveCard');
   card.style.display = hasData ? 'block' : 'none';
   if (!hasData) return;
- 
+
   // DSI per quarter
   const dsi = inv.map((v,i)=>cogs[i]>0?v/cogs[i]*90:0);
   const validDsi = dsi.filter(v=>v>0);
@@ -2585,7 +2616,7 @@ function updateBermanScore() {
     const ch = (dsiLast2-dsiFirst)/dsiFirst;
     dsiScore = Math.max(0,Math.min(25, 12.5 - (ch/0.20)*12.5));
   }
- 
+
   // Inv/Sales trend
   const ivs = inv.map((v,i)=>sal[i]>0?v/sal[i]:0).filter(v=>v>0);
   const hh = Math.floor(ivs.length/2);
@@ -2593,7 +2624,7 @@ function updateBermanScore() {
   const ivsL = ivs.length-hh>0?ivs.slice(hh).reduce((a,b)=>a+b,0)/(ivs.length-hh):0;
   let ivsScore = 12.5;
   if (ivsF>0&&ivsL>0) { const ch=(ivsL-ivsF)/ivsF; ivsScore=Math.max(0,Math.min(25,12.5-(ch/0.15)*12.5)); }
- 
+
   // Gross margin
   const vgm = gm.filter(v=>v>0);
   let gmScore = 10;
@@ -2603,7 +2634,7 @@ function updateBermanScore() {
     const gmL=vgm.slice(gg).reduce((a,b)=>a+b,0)/(vgm.length-gg);
     gmScore=Math.max(0,Math.min(20,10+((gmL-gmF)/1.5)*10));
   }
- 
+
   // SSS quality
   const vsss = sss.filter(v=>v!==0);
   let sssScore = 7.5;
@@ -2614,7 +2645,7 @@ function updateBermanScore() {
     else if (avg<-1||last<-2) sssScore=0;
     else sssScore=Math.max(0,Math.min(15,7.5+(avg/3)*7.5));
   }
- 
+
   // GMROI velocity
   const gmroi = inv.map((v,i)=>v>0&&cogs[i]>0&&sal[i]>0?((sal[i]-cogs[i])/sal[i])*(cogs[i]/v*4):0).filter(v=>v>0);
   let velScore = 7.5;
@@ -2624,7 +2655,7 @@ function updateBermanScore() {
     const gL=gmroi.slice(gv).reduce((a,b)=>a+b,0)/(gmroi.length-gv);
     if (gF>0) velScore=Math.max(0,Math.min(15,7.5+((gL-gF)/gF/0.15)*7.5));
   }
- 
+
   // AP signal (10 pts): AP growing slower than inventory = bullish (company not over-leveraged with suppliers)
   const apArr = [...document.querySelectorAll('#tab-analyzer .ap')].map(e=>parseFloat(e.value)||0);
   const validAp = apArr.filter(v=>v>0);
@@ -2640,7 +2671,7 @@ function updateBermanScore() {
     else if (invChange<-0.1&&apChange<0) apScore=10; // both lean = bullish
     else apScore=5;
   }
- 
+
   // OCF signal (10 pts): OCF > 0 and growing = bullish; OCF < NI consistently = bearish
   const ocfArr = [...document.querySelectorAll('#tab-analyzer .ocf')].map(e=>parseFloat(e.value)||0);
   const validOcf = ocfArr.filter(v=>v!==0);
@@ -2652,7 +2683,7 @@ function updateBermanScore() {
     else if (ratio<=0.25) ocfScore=0;
     else ocfScore=5;
   }
- 
+
   // AR signal (7.5 pts): AR rising faster than revenue = channel stuffing = bearish
   const arArr = [...document.querySelectorAll('#tab-analyzer .ar')].map(e=>parseFloat(e.value)||0);
   const validAr = arArr.filter(v=>v>0);
@@ -2672,7 +2703,7 @@ function updateBermanScore() {
     else if(arChange < salChange - 0.05) arScore = 7.5; // AR shrinking vs sales = bullish
     else arScore = 3.75;
   }
- 
+
   // Net Debt signal (2.5 pts — minor, but high debt amplifies risk)
   const ndArr = [...document.querySelectorAll('#tab-analyzer .nd')].map(e=>parseFloat(e.value)||0);
   const validNd = ndArr.filter(v=>v!==0);
@@ -2685,26 +2716,26 @@ function updateBermanScore() {
     else if(lastNd<firstNd || lastNd<=0) ndScore = 2.5; // deleveraging = bullish
     else ndScore = 1.25;
   }
- 
+
   // Reweight total: DSI(17.5)+IvS(17.5)+GM(15)+SSS(15)+GMROI(10)+AP(10)+OCF(10)+AR(7.5)+ND(2.5) = 105 → scale to 100
   const rawTotal = (dsiScore/25*17.5) + (ivsScore/25*17.5) + (gmScore/20*15) +
     (sssScore/15*15) + (velScore/15*10) + (apScore/10*10) + (ocfScore/10*10) + arScore + ndScore;
   const total = Math.round(rawTotal / 105 * 100);
- 
+
   let color,label;
   if (total>=75){color='var(--green)';label='STRONG LONG 🟢';}
   else if(total>=65){color='var(--green)';label='LONG 🟢';}
   else if(total>=36){color='var(--yellow)';label='NEUTRAL ⏸';}
   else if(total>=25){color='var(--red)';label='SHORT 🔴';}
   else{color='var(--red)';label='STRONG SHORT 🔴';}
- 
+
   document.getElementById('scoreTotalVal').textContent=total+'/100';
   document.getElementById('scoreTotalVal').style.color=color;
   document.getElementById('scoreTotalLabel').textContent=label;
   document.getElementById('scoreTotalLabel').style.color=color;
   document.getElementById('scoreGaugeBar').style.width=total+'%';
   document.getElementById('scoreGaugeBar').style.background=color;
- 
+
   const comps=[
     {label:'Trend DSI (YoY)',score:dsiScore/25*17.5,max:17.5,tip:'DSI in calo nel tempo = segnale bullish. Confronto YoY rimuove stagionalità.'},
     {label:'Inv/Sales Ratio',score:ivsScore/25*17.5,max:17.5,tip:'Rapporto Inventario/Vendite in miglioramento = lean.'},
@@ -2726,14 +2757,14 @@ function updateBermanScore() {
     </div>`;
   }).join('');
 }
- 
+
 // Event listeners per live score
 document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelectorAll('#tab-analyzer .inv, #tab-analyzer .cogs, #tab-analyzer .sales, #tab-analyzer .gm, #tab-analyzer .sss, #tab-analyzer .ap, #tab-analyzer .ocf, #tab-analyzer .ar, #tab-analyzer .nd').forEach(el=>{
     el.addEventListener('input', updateBermanScore);
   });
 });
- 
+
 // ===== RED FLAGS SEMAFORO =====
 function renderRedFlags(text, containerId) {
   const up = text.toUpperCase();
@@ -2777,12 +2808,12 @@ function renderRedFlags(text, containerId) {
   const el = document.getElementById(containerId);
   if (el) el.innerHTML = html;
 }
- 
+
 // ===== WATCHLIST ENGINE =====
 const watchlist = [];
 let wlChartObj = null;
 let _currentHistoryIdx = null; // track which history entry is being viewed
- 
+
 function addToWatchlistManual() {
   const company = document.getElementById('wl_company').value.trim();
   if (!company) { alert('Inserisci almeno il nome dell\'azienda.'); return; }
@@ -2799,7 +2830,7 @@ function addToWatchlistManual() {
   watchlist.push(entry);
   renderWatchlist();
 }
- 
+
 function addToWatchlistFromResult(titleId, signalId) {
   const titleEl = document.getElementById(titleId);
   const sigEl = document.getElementById(signalId);
@@ -2819,7 +2850,7 @@ function addToWatchlistFromResult(titleId, signalId) {
   renderWatchlist();
   alert(`✅ ${company} aggiunta alla Watchlist!`);
 }
- 
+
 function addToWatchlistFromHistory() {
   if (_currentHistoryIdx === null) return;
   const h = analysisHistory[_currentHistoryIdx];
@@ -2837,21 +2868,21 @@ function addToWatchlistFromHistory() {
   renderWatchlist();
   alert(`✅ ${h.company} aggiunta alla Watchlist!`);
 }
- 
+
 // Override showHistoryDetail to track current index
 const _origShowHistoryDetail = showHistoryDetail;
 showHistoryDetail = function(idx) {
   _currentHistoryIdx = idx;
   _origShowHistoryDetail(idx);
 };
- 
+
 function renderWatchlist() {
   const empty = document.getElementById('wlEmpty');
   const list  = document.getElementById('wlList');
   const cc    = document.getElementById('wlChartCard');
   if (!watchlist.length) { empty.style.display='block'; list.style.display='none'; cc.style.display='none'; return; }
   empty.style.display='none'; list.style.display='block'; cc.style.display='block';
- 
+
   const tbody = document.getElementById('wlBody');
   tbody.innerHTML = watchlist.map((e,i)=>{
     const vHtml = e.verdict==='LONG'?'<span class="signal long">✅ LONG</span>':
@@ -2872,7 +2903,7 @@ function renderWatchlist() {
       <td><button class="secondary-btn" style="padding:4px 10px;font-size:12px;color:var(--red);" onclick="removeFromWatchlist(${i})">✕</button></td>
     </tr>`;
   }).join('');
- 
+
   // Summary metrics
   const longs=watchlist.filter(e=>e.verdict==='LONG').length;
   const shorts=watchlist.filter(e=>e.verdict==='SHORT').length;
@@ -2883,7 +2914,7 @@ function renderWatchlist() {
     <div class="metric-card green"><div class="metric-label">LONG</div><div class="metric-value">${longs}</div></div>
     <div class="metric-card red"><div class="metric-label">SHORT</div><div class="metric-value">${shorts}</div></div>
     <div class="metric-card yellow"><div class="metric-label">NEUTRAL/WATCH</div><div class="metric-value">${neutral+watch}</div></div>`;
- 
+
   // Chart
   const ctx = document.getElementById('wlChart').getContext('2d');
   if (wlChartObj) wlChartObj.destroy();
@@ -2893,19 +2924,19 @@ function renderWatchlist() {
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:12}}}}}
   });
 }
- 
+
 function removeFromWatchlist(idx) {
   watchlist.splice(idx,1);
   renderWatchlist();
 }
- 
+
 function clearWatchlist() {
   if (!watchlist.length) return;
   if (!confirm('Svuotare tutta la watchlist?')) return;
   watchlist.length=0;
   renderWatchlist();
 }
- 
+
 function exportWatchlistCSV() {
   if (!watchlist.length) { alert('Watchlist vuota.'); return; }
   const hdr=['#','Azienda','Ticker','Verdetto','DSI','Prezzo','Stop Loss','Data'];
@@ -2916,7 +2947,7 @@ function exportWatchlistCSV() {
   const a=document.createElement('a');a.href=url;a.download=`watchlist-berman-${new Date().toISOString().slice(0,10)}.csv`;a.click();
   URL.revokeObjectURL(url);
 }
- 
+
 // ===== PRINT ANALISI =====
 function printAnalysis(boxId) {
   const box = document.getElementById(boxId);

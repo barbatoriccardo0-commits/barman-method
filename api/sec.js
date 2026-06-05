@@ -244,13 +244,65 @@ module.exports = async function handler(req, res) {
     }
     if (!ref) return res.status(404).json({ error: 'Dati insufficienti per ' + ticker });
 
-    // ── 6. Allineamento fy+fp ─────────────────────────────────────────────
-    function lookup(arr, item) {
-      const m = arr.find(d => d.fp === item.fp && d.fy === item.fy);
-      return (m !== undefined && m !== null) ? +(m.val / 1e6).toFixed(2) : null;
+    // ── 6. Rilevamento anno fiscale ───────────────────────────────────────
+    const MESI_IT = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+
+    // Da una entry Q1, ricava il mese di inizio FY (1–12)
+    // Q1 termina al mese M → FY inizia al mese M-2 (con wrap)
+    function getFYStartMonth(entries) {
+      const q1 = entries.find(d => d.fp === 'Q1');
+      if (!q1) return null;
+      const endMonth = new Date(q1.end).getMonth() + 1; // 1–12
+      return ((endMonth - 3 + 12) % 12) + 1;
     }
 
-    const periodi = ref.map(d => `${d.fp} FY${d.fy}`);
+    // Genera stringa mesi per un dato trimestre (Q1–Q4) dato il mese di inizio FY
+    function quarterMonths(fyStart, qNum) {
+      const start = ((fyStart - 1 + (qNum - 1) * 3) % 12);
+      const end   = (start + 2) % 12;
+      return `${MESI_IT[start]}–${MESI_IT[end]}`;
+    }
+
+    const fyStartMonth = getFYStartMonth(ref);
+    let fyInfo = null;
+    if (fyStartMonth) {
+      const fyEndMonth = ((fyStartMonth - 2 + 12) % 12) + 1; // mese prima dell'inizio
+      fyInfo = {
+        startMonth:     fyStartMonth,
+        startMonthName: MESI_IT[fyStartMonth - 1],
+        endMonthName:   MESI_IT[fyEndMonth - 1],
+        quarters: {
+          Q1: quarterMonths(fyStartMonth, 1),
+          Q2: quarterMonths(fyStartMonth, 2),
+          Q3: quarterMonths(fyStartMonth, 3),
+          Q4: quarterMonths(fyStartMonth, 4),
+        },
+      };
+    }
+
+    // ── 7. Allineamento fy+fp ─────────────────────────────────────────────
+    // lookup: converte val (dollari interi XBRL) in $M.
+    // SEC EDGAR company facts memorizza i valori in dollari interi (es. 8420000000 = $8.420B).
+    // Se val % 1e6 === 0 → la company archivia in milioni → toFixed(0).
+    // Se val % 1e3 === 0 → archivia in migliaia → toFixed(3).
+    // Altrimenti → valore esatto in dollari → toFixed(6).
+    function lookup(arr, item) {
+      const m = arr.find(d => d.fp === item.fp && d.fy === item.fy);
+      if (m === undefined || m === null) return null;
+      const v = m.val / 1e6;
+      // Determina precisione effettiva dal valore grezzo
+      if (m.val % 1e6 === 0) return +v.toFixed(0);   // milioni interi
+      if (m.val % 1e3  === 0) return +v.toFixed(3);   // migliaia
+      return +v.toFixed(6);                            // dollari esatti
+    }
+
+    // Label periodo: "Q1 FY2023 (ago'22)" — include data fine reale per chiarezza
+    const periodi = ref.map(d => {
+      const endDate  = new Date(d.end);
+      const mese     = MESI_IT[endDate.getMonth()];
+      const yy       = endDate.getFullYear().toString().slice(-2);
+      return `${d.fp} FY${d.fy} (${mese}'${yy})`;
+    });
     const inv_M   = ref.map(d => lookup(inv,  d));
     const cogs_M  = ref.map(d => lookup(cogs, d));
     const rev_M   = ref.map(d => lookup(rev,  d));
@@ -287,6 +339,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       cik,
+      fyInfo,
       periodi,
       inv_M,
       cogs_M,

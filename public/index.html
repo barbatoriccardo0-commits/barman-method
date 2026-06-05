@@ -2284,7 +2284,11 @@ async function runManualAnalysis() {
   document.getElementById('resultTitleA').textContent=`Analisi Berman — ${company} (${ticker})`;
   rb.scrollIntoView({behavior:'smooth',block:'start'});
 
-  const prompt = buildBermanPrompt(company, ticker, sector, stores, price, pe, tableRows, comps, intel, transcript, mgmt, context, yoyRows, apRows, ocfRows, dataQuality, arRows, ndRows, d2dsiStr, multiQConf, channelCheck, valuationStr, hiddenImpairmentStr, gmNormal, epsCons, shares, revMomentumStr, storeNormStr, timingStr, dtcStr, dsiPctStr, mgmtMisses);
+  // ── Calcolo JS deterministico PRIMA del prompt — ancora per l'AI ─────────
+  const jsResult = computeBermanScore();
+  const jsScore  = jsResult ? jsResult.total : null;
+
+  const prompt = buildBermanPrompt(company, ticker, sector, stores, price, pe, tableRows, comps, intel, transcript, mgmt, context, yoyRows, apRows, ocfRows, dataQuality, arRows, ndRows, d2dsiStr, multiQConf, channelCheck, valuationStr, hiddenImpairmentStr, gmNormal, epsCons, shares, revMomentumStr, storeNormStr, timingStr, dtcStr, dsiPctStr, mgmtMisses, jsScore);
   try {
     const r = await callAI(prompt);
     ld.style.display='none';
@@ -2292,7 +2296,7 @@ async function runManualAnalysis() {
   } catch(e) { ld.style.display='none'; rc.innerHTML=`<span style="color:var(--red);">Errore: ${e.message||'Riprova'}</span>`; }
 }
 
-function buildBermanPrompt(company,ticker,sector,stores,price,pe,tableRows,comps,intel,transcript,mgmt,context,yoyRows,apRows,ocfRows,dataQuality,arRows,ndRows,d2dsiStr,multiQConf,channelCheck,valuationStr,hiddenImpairmentStr,gmNormal,epsCons,shares,revMomentumStr,storeNormStr,timingStr,dtcStr,dsiPctStr,mgmtMisses) {
+function buildBermanPrompt(company,ticker,sector,stores,price,pe,tableRows,comps,intel,transcript,mgmt,context,yoyRows,apRows,ocfRows,dataQuality,arRows,ndRows,d2dsiStr,multiQConf,channelCheck,valuationStr,hiddenImpairmentStr,gmNormal,epsCons,shares,revMomentumStr,storeNormStr,timingStr,dtcStr,dsiPctStr,mgmtMisses,jsScore) {
   const hasTranscript = !!transcript;
   let sectionNum = 1;
   const sec = () => sectionNum++;
@@ -2608,7 +2612,17 @@ Data attesa del prossimo 10-Q: __ settimane. Impostare alert su SEC EDGAR per ${
 
 Rispondi in italiano. Massima densità. Ogni numero calcolato dai dati forniti, mai inventato.
 
+${jsScore !== null ? `═══════════════════════════════════════════
+ANCORA DETERMINISTICA — OBBLIGATORIA
 ═══════════════════════════════════════════
+Il calcolo quantitativo JS puro dai dati SEC EDGAR ha prodotto: PUNTEGGIO_JS = ${jsScore}/100
+Zona JS: ${jsScore >= 65 ? '🟢 VERDE (65–100)' : jsScore >= 36 ? '🟡 GIALLO (36–64)' : '🔴 ROSSO (1–35)'}
+
+REGOLA VINCOLANTE: il tuo PUNTEGGIO_CICLO DEVE essere entro ±8 punti da PUNTEGGIO_JS.
+Puoi discostarti di ±8 SOLO se hai evidenza qualitativa FORTE e SPECIFICA (citazione earnings call, dato settoriale certo). In caso di dubbio, usa PUNTEGGIO_JS come valore di default.
+Non puoi produrre un PUNTEGGIO_CICLO che cambia zona rispetto a PUNTEGGIO_JS (es: JS=45/GIALLO → tuo score non può essere <36 o >64) a meno di evidenza schiacciante e citata.
+
+` : ''}═══════════════════════════════════════════
 RIGA FINALE OBBLIGATORIA (ultima riga, nessun testo dopo)
 ═══════════════════════════════════════════
 PUNTEGGIO_CICLO: [numero da 1 a 100]

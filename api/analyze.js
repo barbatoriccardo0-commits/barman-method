@@ -1,6 +1,6 @@
 // Vercel Serverless Function — Metodo Berman
 // Protezioni: password segreta + rate limit per IP via Upstash Redis
-// Logica: tenta gpt-4o → se rifiuta, ritenta con gpt-4o-mini → fallback Anthropic
+// Logica: tenta gpt-4o → fallback Anthropic (un modello per provider, nessun gpt-4o-mini per determinismo)
 
 const RATE_LIMIT = parseInt(process.env.RATE_LIMIT_PER_DAY || '20', 10);
 
@@ -156,21 +156,22 @@ REGOLE ASSOLUTE:
     return res.status(500).json({ error: 'Nessuna API key configurata.' });
   }
 
-  // 5. Catena di tentativi: gpt-4o → gpt-4o-mini → Anthropic ───────────
+  // 5. Catena di tentativi: gpt-4o → Anthropic (rimosso gpt-4o-mini per determinismo)
+  // Un solo modello per provider — nessun fallback a modelli "leggeri" che danno verdetti diversi.
   const attempts = [];
   if (openaiKey) {
-    attempts.push(() => callOpenAI(openaiKey, 'gpt-4o',      SYSTEM, prompt));
-    attempts.push(() => callOpenAI(openaiKey, 'gpt-4o-mini', SYSTEM, prompt));
+    attempts.push({ fn: () => callOpenAI(openaiKey, 'gpt-4o', SYSTEM, prompt), model: 'gpt-4o' });
   }
   if (anthropicKey) {
-    attempts.push(() => callAnthropic(anthropicKey, anthropicModel, SYSTEM, prompt));
+    attempts.push({ fn: () => callAnthropic(anthropicKey, anthropicModel, SYSTEM, prompt), model: anthropicModel });
   }
 
   for (const attempt of attempts) {
     try {
-      const content = await attempt();
+      const content = await attempt.fn();
       // Se il modello ha risposto con un rifiuto, proviamo il prossimo
       if (isRefusal(content)) continue;
+      res.setHeader('X-Model-Used', attempt.model);
       return res.status(200).json({ content });
     } catch (e) {
       // errore HTTP → proviamo il prossimo

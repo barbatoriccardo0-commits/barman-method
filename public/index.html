@@ -1197,12 +1197,13 @@ async function fetchEdgarData() {
 
 Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — nessun testo prima o dopo.
 
-REGOLA FONDAMENTALE SUI DATI — LEGGI CON ATTENZIONE:
-· Riporta SOLO valori realmente riportati nei filing 10-Q/10-K ufficiali. MAI inventare, lisciare o interpolare.
-· I dati reali sono volatili e irregolari: Nike Q4 FY2022 aveva inventario $9,682M, Q1 FY2023 sceso a $8,988M, poi $9,730M Q2 FY2023 — variazioni brusche sono CORRETTE e attese.
-· Se non hai il valore esatto di un trimestre specifico, metti null. NON inserire una stima "vicina" che sembrerebbe plausibile — preferisci null a un valore inventato.
-· La variabilità stagionale è reale: l'inventario di un retailer sale prima delle festività e scende dopo. COGS varia con le stagioni. GM% fluttua trimestre per trimestre. Dati "troppo smooth" sono un segnale che stai interpolando — non farlo.
-· Precisione: usa i valori in $M con 2 decimali (es. 9682.10, non 9682 o 9682.1).
+NOTA ARCHITETTURALE: inventario_M, cogs_M, vendite_M, ap_M, ocf_M, ar_M, net_debt_M vengono recuperati automaticamente da SEC EDGAR XBRL API — NON includerli in questo JSON. Fornisci solo i campi elencati nello schema qui sotto.
+
+DATI STATICI (campi singoli: negozi, prezzo, pe_forward, pe_settore, eps_consenso, eps_anno_prec, calo_da_high_pct, short_interest_pct, shares_M, store_delta_yoy_pct, dtc_pct, giorni_al_prossimo_earnings, revisioni_rialzo_90g, revisioni_ribasso_90g, guidance_mancate_8q, gm_normalizzato):
+· Questi campi NON sono serie temporali. Stimali dalla tua knowledge base per le aziende quotate USA.
+· Per aziende S&P500 come Nike, Target, Walmart hai dati sufficienti.
+· Usa i dati più recenti che conosci. Se li conosci con buona approssimazione, inseriscili — non lasciare null per pigrizia.
+· Esempio Nike (FY2023): negozi ≈ 1000 direct-owned, pe_forward ≈ 25-30, dtc_pct ≈ 42%.
 
 SCHEMA DA RESTITUIRE:
 {
@@ -1226,16 +1227,7 @@ SCHEMA DA RESTITUIRE:
   "store_delta_yoy_pct": null,
   "dtc_pct": null,
   "contesto_settore": "2-3 frasi sul contesto macro e settoriale attuale",
-  "periodi": ["SOSTITUISCI con i 12 trimestri fiscali reali dell'azienda in ordine cronologico, usando il VERO calendario fiscale dell'azienda (es. Nike FY termina a maggio: Q1=giu-ago, Q2=set-nov, Q3=dic-feb, Q4=mar-mag). Formato: 'Q1 FY2022'. INIZIA dal trimestre più vecchio con dati disponibili, FINISCI con l'ultimo 10-Q pubblicato."],
-  "inventario_M": ["Inventario netto dal balance sheet di ciascun 10-Q in $M con 2 decimali — MAI interpolato"],
-  "cogs_M": ["COGS trimestrale (non YTD) dall'income statement — fluttua stagionalmente, non è smooth"],
-  "vendite_M": ["Net revenues trimestrali — con stagionalità reale"],
-  "gross_margin_pct": ["GM% = (Rev - COGS) / Rev × 100 — calcola dai valori reali, 2 decimali"],
-  "sss_pct": ["Same-store sales growth % riportato dall'azienda — null se non riportato"],
-  "ap_M": ["Accounts payable dal balance sheet — istantaneo, end of quarter"],
-  "ocf_M": ["Operating cash flow trimestrale (deriva da YTD se necessario: Q2_ocf = Q2_YTD - Q1_YTD)"],
-  "ar_M": ["Accounts receivable netti dal balance sheet"],
-  "net_debt_M": ["Net debt = LT debt + ST debt - cash, dal balance sheet"],
+  "sss_pct": ["Same-store sales growth % riportato dall'azienda — null se non riportato. 12 valori."],
   "competitor": [
     {"nome": "Ticker — Nome competitor 1", "dsi": null, "inv_sales": null, "gm_pct": null, "sss_pct": null},
     {"nome": "Ticker — Nome competitor 2", "dsi": null, "inv_sales": null, "gm_pct": null, "sss_pct": null},
@@ -1253,7 +1245,7 @@ SCHEMA DA RESTITUIRE:
     "notes": "Descrizione qualitativa: report analisti field visit, recensioni clienti pubbliche, notizie recenti sullo stato degli store"
   },
   "fonti": [
-    {"tipo": "SEC 10-Q", "periodo": "Q__ FY__", "descrizione": "Dati inventario, COGS, vendite, AP, OCF, AR, net debt"},
+    {"tipo": "Earnings Call / MD&A", "periodo": "Q__ FY__ — data", "descrizione": "Citazioni SSS, store count, guidance"},
     {"tipo": "Earnings Call", "periodo": "Q__ FY__ — data", "descrizione": "Citazioni management, forensics"},
     {"tipo": "Macrotrends / Stockanalysis", "periodo": "aggiornato a __", "descrizione": "Serie storica metriche"},
     {"tipo": "Report analisti / stampa", "periodo": "__", "descrizione": "Channel check, sentiment settore"}
@@ -1276,7 +1268,7 @@ REGOLE CRITICHE:
    - staff: "declining" | "normal" | "good" | ""
 5. Includi almeno 3 competitor diretti con i loro dati di inventario
 6. fonti: elenca ogni fonte usata, anche se generica ("knowledge base al [data]")
-7. PRIORITÀ DATI: riporta SOLO valori riportati nei filing 10-Q/10-K ufficiali o fonti primarie verificabili. Se non hai il valore esatto di un trimestre, usa null. NON inserire stime, interpolazioni o valori proporzionali — i dati reali sono volatili e irregolari, non proporzionali. Precisione: 2 decimali in $M (es. 9682.10). Un null onesto vale più di un numero inventato.`;
+7. PRIORITÀ DATI: i dati trimestrali (inventario, COGS, ricavi, AP, OCF, AR, debito) vengono da SEC EDGAR — non includerli in questo JSON. Per i campi statici (negozi, prezzo, pe_forward, eps, short interest, shares, ecc.) stima dalla knowledge base: per aziende S&P500 hai dati sufficienti, non lasciare null per comodità.`;
 
   // Helper per chiamare /api/market
   async function fetchMarketData(tick) {
@@ -1532,18 +1524,18 @@ REGOLE CRITICHE:
   for (let i = 0; i < 12; i++) {
     if (qlEls[i]) qlEls[i].value = i < n ? (periods[i] || '') : '';
 
-    // SEC ha priorità; se manca un valore specifico, usa AI come fallback per quel campo
+    // Dati trimestrali: SOLO da SEC EDGAR — nessun fallback AI (evita dati inventati)
     const SEC = secData || {};
     const AI  = data   || {};
-    fill(invEls[i],  v(SEC.inv_M,  i), v(AI.inventario_M,      i), 'inv',  i);
-    fill(cogsEls[i], v(SEC.cogs_M, i), v(AI.cogs_M,            i), 'cogs', i);
-    fill(salEls[i],  v(SEC.rev_M,  i), v(AI.vendite_M,         i), 'sal',  i);
-    fill(gmEls[i],   v(SEC.gm_pct, i), v(AI.gross_margin_pct,  i), 'gm',   i);
-    fill(apEls[i],   v(SEC.ap_M,   i), v(AI.ap_M,              i), 'ap',   i);
-    fill(ocfEls[i],  v(SEC.ocf_M,  i), v(AI.ocf_M,             i), 'ocf',  i);
-    fill(arEls[i],   v(SEC.ar_M,   i), v(AI.ar_M,              i), 'ar',   i);
-    fill(ndEls[i],   v(SEC.nd_M,   i), v(AI.net_debt_M,        i), 'nd',   i);
-    // SSS non è in XBRL → sempre AI
+    fill(invEls[i],  v(SEC.inv_M,  i), null, 'inv',  i);
+    fill(cogsEls[i], v(SEC.cogs_M, i), null, 'cogs', i);
+    fill(salEls[i],  v(SEC.rev_M,  i), null, 'sal',  i);
+    fill(gmEls[i],   v(SEC.gm_pct, i), null, 'gm',   i);
+    fill(apEls[i],   v(SEC.ap_M,   i), null, 'ap',   i);
+    fill(ocfEls[i],  v(SEC.ocf_M,  i), null, 'ocf',  i);
+    fill(arEls[i],   v(SEC.ar_M,   i), null, 'ar',   i);
+    fill(ndEls[i],   v(SEC.nd_M,   i), null, 'nd',   i);
+    // SSS non è in XBRL → unico campo AI accettato per la griglia
     if (sssEls[i])  sssEls[i].value = v(AI.sss_pct, i);
   }
 

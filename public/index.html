@@ -2065,22 +2065,24 @@ async function runManualAnalysis() {
   ].filter(Boolean).join(' | ');
 
   const ql = [...document.querySelectorAll('#tab-analyzer .ql')].map(e=>e.value||'');
-  const inv = [...document.querySelectorAll('#tab-analyzer .inv')].map(e=>parseFloat(e.value)||0);
-  const cogs= [...document.querySelectorAll('#tab-analyzer .cogs')].map(e=>parseFloat(e.value)||0);
-  const sal = [...document.querySelectorAll('#tab-analyzer .sales')].map(e=>parseFloat(e.value)||0);
-  const gm  = [...document.querySelectorAll('#tab-analyzer .gm')].map(e=>parseFloat(e.value)||0);
-  const sss = [...document.querySelectorAll('#tab-analyzer .sss')].map(e=>parseFloat(e.value)||0);
-  const ap  = [...document.querySelectorAll('#tab-analyzer .ap')].map(e=>parseFloat(e.value)||0);
-  const ocf = [...document.querySelectorAll('#tab-analyzer .ocf')].map(e=>parseFloat(e.value)||0);
-  const ar  = [...document.querySelectorAll('#tab-analyzer .ar')].map(e=>parseFloat(e.value)||0);
-  const nd  = [...document.querySelectorAll('#tab-analyzer .nd')].map(e=>parseFloat(e.value)||0);
+  // Cella vuota o zero → null (dato mancante). Lo zero REALE è rarissimo e va inserito manualmente.
+  const pf = v => { const n = parseFloat(v); return (isNaN(n) || n === 0) ? null : n; };
+  const inv = [...document.querySelectorAll('#tab-analyzer .inv')].map(e=>pf(e.value));
+  const cogs= [...document.querySelectorAll('#tab-analyzer .cogs')].map(e=>pf(e.value));
+  const sal = [...document.querySelectorAll('#tab-analyzer .sales')].map(e=>pf(e.value));
+  const gm  = [...document.querySelectorAll('#tab-analyzer .gm')].map(e=>pf(e.value));
+  const sss = [...document.querySelectorAll('#tab-analyzer .sss')].map(e=>pf(e.value));
+  const ap  = [...document.querySelectorAll('#tab-analyzer .ap')].map(e=>pf(e.value));
+  const ocf = [...document.querySelectorAll('#tab-analyzer .ocf')].map(e=>pf(e.value));
+  const ar  = [...document.querySelectorAll('#tab-analyzer .ar')].map(e=>pf(e.value));
+  const nd  = [...document.querySelectorAll('#tab-analyzer .nd')].map(e=>pf(e.value));
 
-  const hasData = inv.some(v=>v>0) || sal.some(v=>v>0);
+  const hasData = inv.some(v=>v!=null) || sal.some(v=>v!=null);
   if (!hasData) { alert('Inserisci almeno inventario e vendite per qualche trimestre.'); return; }
 
   // Data quality check
-  const filledQ = inv.filter(v=>v>0).length;
-  const hasCogs = cogs.some(v=>v>0), hasSal = sal.some(v=>v>0), hasAP = ap.some(v=>v>0), hasOCF = ocf.some(v=>v>0);
+  const filledQ = inv.filter(v=>v!=null).length;
+  const hasCogs = cogs.some(v=>v!=null), hasSal = sal.some(v=>v!=null), hasAP = ap.some(v=>v!=null), hasOCF = ocf.some(v=>v!=null);
   let dataQuality = `${filledQ}/12 trimestri con inventario`;
   if (filledQ < 4) dataQuality += ' ⚠️ DATI INSUFFICIENTI — convinzione massima: BASSA';
   else if (filledQ < 8) dataQuality += ' (sufficiente per trend di base)';
@@ -2089,36 +2091,39 @@ async function runManualAnalysis() {
   if (!hasAP) dataQuality += ' | ⚠️ AP mancante (analisi fornitori incompleta)';
   if (!hasOCF) dataQuality += ' | ⚠️ OCF mancante (cash flow non analizzabile)';
 
+  // Helper per formattare: null → 'N/D', numero → stringa
+  const fmt = (v, suffix='') => v != null ? `${v}${suffix}` : 'N/D';
+
   // Compute DSI and YoY
-  const dsiArr = inv.map((v,i)=>cogs[i]>0?v/cogs[i]*90:0);
+  const dsiArr = inv.map((v,i)=> (v!=null && cogs[i]!=null && cogs[i]>0) ? v/cogs[i]*90 : null);
   let yoyRows = '';
   for (let i=4; i<12; i++) {
-    if ((inv[i]||sal[i])&&(inv[i-4]||sal[i-4])) {
+    if ((inv[i]!=null||sal[i]!=null)&&(inv[i-4]!=null||sal[i-4]!=null)) {
       const dsiNow = dsiArr[i], dsiPrev = dsiArr[i-4];
-      const yoyDsi = (dsiNow>0&&dsiPrev>0) ? ((dsiNow/dsiPrev-1)*100).toFixed(1)+'%' : 'N/D';
-      const invYoy = inv[i-4]>0 ? ((inv[i]/inv[i-4]-1)*100).toFixed(1)+'%' : 'N/D';
-      const salYoy = sal[i-4]>0 ? ((sal[i]/sal[i-4]-1)*100).toFixed(1)+'%' : 'N/D';
-      const apYoy  = ap[i-4]>0  ? ((ap[i]/ap[i-4]-1)*100).toFixed(1)+'%'  : 'N/D';
+      const yoyDsi = (dsiNow!=null&&dsiPrev!=null&&dsiPrev>0) ? ((dsiNow/dsiPrev-1)*100).toFixed(1)+'%' : 'N/D';
+      const invYoy = (inv[i]!=null&&inv[i-4]!=null&&inv[i-4]>0) ? ((inv[i]/inv[i-4]-1)*100).toFixed(1)+'%' : 'N/D';
+      const salYoy = (sal[i]!=null&&sal[i-4]!=null&&sal[i-4]>0) ? ((sal[i]/sal[i-4]-1)*100).toFixed(1)+'%' : 'N/D';
+      const apYoy  = (ap[i]!=null&&ap[i-4]!=null&&ap[i-4]>0)   ? ((ap[i]/ap[i-4]-1)*100).toFixed(1)+'%'  : 'N/D';
       yoyRows += `| ${ql[i]||'T'+(i+1)} vs ${ql[i-4]||'T'+(i-3)} | DSI YoY: ${yoyDsi} | Inv YoY: ${invYoy} | Sales YoY: ${salYoy} | AP YoY: ${apYoy} |\n`;
     }
   }
 
   let tableRows = '';
   for (let i=0; i<12; i++) {
-    if (inv[i]||sal[i]||cogs[i]) {
-      const dsi = cogs[i]>0 ? (inv[i]/cogs[i]*90).toFixed(1) : 'N/D';
-      const ivs = sal[i]>0 ? (inv[i]/sal[i]).toFixed(2) : 'N/D';
-      tableRows += `| ${ql[i]||'T'+(i+1)} | $${inv[i]}M | $${cogs[i]}M | $${sal[i]}M | ${gm[i]}% | ${dsi} gg | ${ivs} | ${sss[i]}% | $${ap[i]||0}M | $${ocf[i]||0}M |\n`;
+    if (inv[i]!=null || sal[i]!=null || cogs[i]!=null) {
+      const dsi = (inv[i]!=null && cogs[i]!=null && cogs[i]>0) ? (inv[i]/cogs[i]*90).toFixed(1) : 'N/D';
+      const ivs = (inv[i]!=null && sal[i]!=null  && sal[i]>0)  ? (inv[i]/sal[i]).toFixed(2)      : 'N/D';
+      tableRows += `| ${ql[i]||'T'+(i+1)} | ${fmt(inv[i],'M')} | ${fmt(cogs[i],'M')} | ${fmt(sal[i],'M')} | ${fmt(gm[i],'%')} | ${dsi} gg | ${ivs} | ${fmt(sss[i],'%')} | ${fmt(ap[i],'M')} | ${fmt(ocf[i],'M')} |\n`;
     }
   }
   const comps = getCompData('compRowsA');
 
   // AP, OCF, AR, ND rows for prompt
   let apRows = '', ocfRows = '', arRows = '', ndRows = '';
-  for(let i=0;i<12;i++){if(ap[i]) apRows+=`${ql[i]||'T'+(i+1)}: $${ap[i]}M | `;}
-  for(let i=0;i<12;i++){if(ocf[i]) ocfRows+=`${ql[i]||'T'+(i+1)}: $${ocf[i]}M | `;}
-  for(let i=0;i<12;i++){if(ar[i]) arRows+=`${ql[i]||'T'+(i+1)}: $${ar[i]}M | `;}
-  for(let i=0;i<12;i++){if(nd[i]) ndRows+=`${ql[i]||'T'+(i+1)}: $${nd[i]}M | `;}
+  for(let i=0;i<12;i++){if(ap[i]!=null)  apRows +=`${ql[i]||'T'+(i+1)}: $${ap[i]}M | `;}
+  for(let i=0;i<12;i++){if(ocf[i]!=null) ocfRows+=`${ql[i]||'T'+(i+1)}: $${ocf[i]}M | `;}
+  for(let i=0;i<12;i++){if(ar[i]!=null)  arRows +=`${ql[i]||'T'+(i+1)}: $${ar[i]}M | `;}
+  for(let i=0;i<12;i++){if(nd[i]!=null)  ndRows +=`${ql[i]||'T'+(i+1)}: $${nd[i]}M | `;}
 
   // Second-derivative DSI (acceleration/deceleration of YoY change)
   const dsiYoY = [];

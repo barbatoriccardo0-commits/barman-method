@@ -43,34 +43,23 @@ module.exports = async function handler(req, res) {
     // ── 3. Helpers ─────────────────────────────────────────────────────────
 
     // getQ: aggrega TUTTI i tag candidati in un unico pool, poi prende i 12 più recenti.
+    // Solo 10-Q trimestrali — nessun fallback 10-K (evitiamo periodi "FY" spuri).
     // Per item duration (income statement, con x.start): filtra a ~3 mesi (Q trimestrale puro).
     // Per item instant (balance sheet, senza x.start): passa sempre.
-    // acceptAnnual=true → aggiunge anche 10-K come Q4 fallback per item instant (balance sheet).
-    function getQ(tags, acceptAnnual = false) {
+    function getQ(tags) {
       const pool = {}; // key = "fy-fp", valore = entry più recente
       for (const tag of tags) {
         const d = gaap[tag];
         if (!d?.units?.USD) continue;
         for (const x of d.units.USD) {
-          const isQ = x.form === '10-Q' && x.fp && x.fp !== 'FY';
-          // 10-K instant (balance sheet, no x.start) → trattato come Q4 di quell'anno fiscale
-          const isK = acceptAnnual && x.form === '10-K' && !x.start && x.fy;
-          if ((!isQ && !isK) || !x.fy || !x.end) continue;
+          if (x.form !== '10-Q' || !x.fp || x.fp === 'FY' || !x.fy || !x.end) continue;
           // Duration item → solo periodi ~3 mesi
           if (x.start) {
             const days = (new Date(x.end) - new Date(x.start)) / 86400000;
             if (days < 60 || days > 110) continue;
           }
-          const fp = x.fp || 'Q4'; // 10-K non ha fp → lo trattiamo come Q4
-          const key = `${x.fy}-${fp}`;
-          const existing = pool[key];
-          if (!existing) {
-            pool[key] = { ...x, fp };
-          } else if (isQ && existing.form === '10-K') {
-            pool[key] = { ...x, fp }; // 10-Q vince sempre sul 10-K per la stessa fy-fp
-          } else if (x.form === existing.form && x.filed > existing.filed) {
-            pool[key] = { ...x, fp }; // stessa tipologia → prendi il filing più recente
-          }
+          const key = `${x.fy}-${x.fp}`;
+          if (!pool[key] || x.filed > pool[key].filed) pool[key] = x;
         }
       }
       // Prendi i 12 più recenti (sort DESCENDING per data fine, slice(0,12), poi riporta in ordine cronologico)
@@ -170,7 +159,7 @@ module.exports = async function handler(req, res) {
     const inv = getQ([
       'InventoryNet','Inventories','InventoriesNet',
       'InventoryFinishedGoods','InventoryFinishedGoodsNetOfReserves',
-    ], true); // balance sheet instant → accetta anche 10-K come Q4 fallback
+    ]);
 
     // COGS: prova trimestrale diretto, fallback YTD-diff
     let cogs = getQ([
@@ -201,7 +190,7 @@ module.exports = async function handler(req, res) {
       'AccountsPayableCurrent','AccountsPayable',
       'AccountsPayableAndAccruedLiabilitiesCurrent',
       'AccountsPayableRelatedPartiesCurrent',
-    ], true);
+    ]);
 
     // OCF: sempre YTD nel cash flow → usa YTD-diff
     const ocf = getQFromYTD([
@@ -214,26 +203,26 @@ module.exports = async function handler(req, res) {
       'AccountsReceivableNetCurrent','ReceivablesNetCurrent',
       'AccountsReceivableNet','TradeReceivablesNetCurrent',
       'AccountsReceivableGrossCurrent',
-    ], true);
+    ]);
 
     const debtLT = getQ([
       'LongTermDebt','LongTermDebtNoncurrent',
       'LongTermDebtAndCapitalLeaseObligations',
       'LongTermNotesPayable','LongTermDebtCurrent',
-    ], true);
+    ]);
 
     const debtST = getQ([
       'ShortTermBorrowings','CommercialPaper',
       'NotesPayableToBanksCurrent','ShortTermDebt',
       'LinesOfCredit',
-    ], true);
+    ]);
 
     const cashArr = getQ([
       'CashAndCashEquivalentsAtCarryingValue',
       'CashAndCashEquivalents','Cash',
       'CashCashEquivalentsAndShortTermInvestments',
       'CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents',
-    ], true);
+    ]);
 
     const epsArr    = getQPerShare(['EarningsPerShareDiluted','EarningsPerShareBasic']);
     const sharesArr = getQShares(['CommonStockSharesOutstanding','CommonStockSharesIssued']);

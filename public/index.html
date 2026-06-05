@@ -1675,11 +1675,28 @@ REGOLE CRITICHE:
     ? `<span style="background:#dcfce7;color:#15803d;border:1px solid #86efac;border-radius:12px;padding:2px 10px;font-weight:700;font-size:11px;margin-left:8px;">🏛 Dati SEC EDGAR reali</span>`
     : `<span style="background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;border-radius:12px;padding:2px 10px;font-weight:700;font-size:11px;margin-left:8px;">🤖 Stima AI (SEC non disponibile)</span>`;
 
+  // ── Banner anno fiscale ──────────────────────────────────────────────────
+  let fyBanner = '';
+  if (secData && secData.fyInfo) {
+    const fy = secData.fyInfo;
+    fyBanner = `
+    <div style="margin-top:9px;padding:8px 13px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;font-size:12px;line-height:1.9;">
+      <strong style="color:#1d4ed8;">📅 Anno fiscale ${(data && data.company) || ticker}:</strong>
+      inizia a <strong>${fy.startMonthName}</strong>, termina a <strong>${fy.endMonthName}</strong> —
+      <span style="color:#1e40af;">Q1&nbsp;=&nbsp;${fy.quarters.Q1}</span> ·
+      <span style="color:#1e40af;">Q2&nbsp;=&nbsp;${fy.quarters.Q2}</span> ·
+      <span style="color:#1e40af;">Q3&nbsp;=&nbsp;${fy.quarters.Q3}</span> ·
+      <span style="color:#1e40af;">Q4&nbsp;=&nbsp;${fy.quarters.Q4}</span><br>
+      <span style="color:#6b7280;font-size:11px;">I label dei trimestri (es. "Q1 FY2023 (ago'22)") indicano il codice fiscale + il mese di fine periodo effettivo.</span>
+    </div>`;
+  }
+
   msg.innerHTML = `✅ Dati caricati: <strong>${n} trimestri</strong> per <strong>${(data && data.company) || ticker}</strong> ${secBadge}
     ${data ? `· Affidabilità: <span style="color:${affColor};font-weight:700;">${data.affidabilita || 'N/D'}</span>
     · Aggiornato a: <strong>${data.data_aggiornamento || 'N/D'}</strong>` : ''}
     ${(data && data.note) ? '<br><span style="font-size:12px;color:var(--text3);">⚠️ ' + data.note + '</span>' : ''}
     <br><span style="color:var(--green);font-size:12px;">✅ Compilati: ${secData ? '<strong>inventario · COGS · ricavi · GM% · AP · OCF · AR</strong> da SEC EDGAR (≥92%) · ' : ''}earnings call forensics · channel check · note management</span>
+    ${fyBanner}
     <div style="margin-top:8px;padding:9px 13px;background:#f8fafd;border:1px solid var(--border);border-radius:7px;font-size:12px;line-height:1.8;">
       <strong style="color:var(--navy);">🎨 Legenda — passa il mouse su ogni campo per vedere accuratezza e fonte:</strong><br>
       <span style="color:#15803d;">✅ Bordo verde (≥85%)</span> = ${secData ? 'dati ufficiali SEC EDGAR 10-Q / dati di mercato pubblici' : 'dati di mercato pubblici'}<br>

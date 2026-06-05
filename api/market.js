@@ -1,74 +1,115 @@
 // Vercel Serverless Function — Market data via Yahoo Finance (server-side)
-// Evita CORS e ottiene dati in tempo reale: prezzo, PE, EPS, short interest, ecc.
- 
+// v2: multi-endpoint fallback (v10 query2 → v10 query1 → v8 chart per price)
+
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+// ── Prova a ottenere un crumb Yahoo (necessario su alcune region) ────────────
+async function getYahooCrumb() {
+  try {
+    const r = await fetch('https://query1.finance.yahoo.com/v1/test/getcrumb', {
+      headers: { 'User-Agent': UA, 'Accept': '*/*' },
+    });
+    if (r.ok) {
+      const text = await r.text();
+      if (text && text.length < 50) return text.trim();
+    }
+  } catch (_) { /* ignore */ }
+  return null;
+}
+
+// ── quoteSummary con retry su entrambi i subdomain ───────────────────────────
+async function fetchQuoteSummary(ticker, crumb) {
+  const modules = [
+    'price', 'summaryDetail', 'defaultKeyStatistics',
+    'financialData', 'calendarEvents', 'recommendationTrend', 'earnings',
+  ].join(',');
+
+  const endpoints = [
+    `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${ticker}?modules=${modules}${crumb ? `&crumb=${encodeURIComponent(crumb)}` : ''}`,
+    `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${ticker}?modules=${modules}${crumb ? `&crumb=${encodeURIComponent(crumb)}` : ''}`,
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const r = await fetch(url, {
+        headers: { 'User-Agent': UA, 'Accept': 'application/json', 'Accept-Language': 'en-US,en;q=0.9' },
+      });
+      if (!r.ok) continue;
+      const body = await r.json();
+      const result = body?.quoteSummary?.result?.[0];
+      if (result) return result;
+    } catch (_) { continue; }
+  }
+  return null;
+}
+
+// ── Fallback: v8/finance/chart per soli prezzo + 52w high ───────────────────
+async function fetchChartFallback(ticker) {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+    const r = await fetch(url, { headers: { 'User-Agent': UA, 'Accept': 'application/json' } });
+    if (!r.ok) return null;
+    const body = await r.json();
+    const meta = body?.chart?.result?.[0]?.meta;
+    if (!meta) return null;
+    return {
+      regularMarketPrice: { raw: meta.regularMarketPrice ?? null },
+      fiftyTwoWeekHigh:   { raw: meta.fiftyTwoWeekHigh   ?? null },
+    };
+  } catch (_) { return null; }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
- 
+
   const ticker = (req.query.ticker || '').trim().toUpperCase();
   if (!ticker) return res.status(400).json({ error: 'ticker mancante' });
- 
+
   try {
-    // Yahoo Finance quoteSummary — moduli necessari
-    const modules = [
-      'price',
-      'summaryDetail',
-      'defaultKeyStatistics',
-      'financialData',
-      'calendarEvents',
-      'recommendationTrend',
-      'earnings',
-    ].join(',');
- 
-    const url = `https://query2.finance.yahoo.com/v10/finance/quoteSummary/${ticker}?modules=${modules}`;
- 
-    const resp = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MetodoBerman/1.0)',
-        'Accept': 'application/json',
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-    });
- 
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => '');
-      return res.status(resp.status).json({ error: `Yahoo Finance HTTP ${resp.status}`, detail: text.slice(0, 200) });
+    // Prova a ottenere crumb (non bloccante se fallisce)
+    const crumb = await getYahooCrumb();
+
+    // Fetch dati completi
+    const result = await fetchQuoteSummary(ticker, crumb);
+
+    const pr  = result?.price              || {};
+    const sd  = result?.summaryDetail      || {};
+    const ks  = result?.defaultKeyStatistics || {};
+    const cal = result?.calendarEvents     || {};
+    const rt  = result?.recommendationTrend || {};
+    const ea  = result?.earnings           || {};
+
+    // ── Prezzo — se quoteSummary manca, fallback a v8/chart ────────────────
+    let prezzo   = pr.regularMarketPrice?.raw ?? null;
+    let high52   = sd.fiftyTwoWeekHigh?.raw   ?? null;
+    if (prezzo === null) {
+      const chart = await fetchChartFallback(ticker);
+      if (chart) {
+        prezzo = chart.regularMarketPrice?.raw ?? null;
+        high52 = chart.fiftyTwoWeekHigh?.raw   ?? null;
+      }
     }
- 
-    const body = await resp.json();
-    const result = body?.quoteSummary?.result?.[0];
-    if (!result) return res.status(404).json({ error: 'Nessun dato Yahoo per ' + ticker });
- 
-    const pr  = result.price             || {};
-    const sd  = result.summaryDetail     || {};
-    const ks  = result.defaultKeyStatistics || {};
-    const fd  = result.financialData     || {};
-    const cal = result.calendarEvents    || {};
-    const rt  = result.recommendationTrend || {};
-    const ea  = result.earnings          || {};
- 
-    // ── Prezzo e variazione da 52w high ──────────────────────────────────
-    const prezzo = pr.regularMarketPrice?.raw ?? null;
-    const high52 = sd.fiftyTwoWeekHigh?.raw   ?? null;
+
     const calo_da_high_pct = (prezzo && high52)
       ? +((1 - prezzo / high52) * 100).toFixed(1)
       : null;
- 
-    // ── Valutazione ───────────────────────────────────────────────────────
-    const pe_forward     = sd.forwardPE?.raw    ?? null;
-    const pe_trailing    = sd.trailingPE?.raw   ?? null;
-    const eps_consenso   = ks.forwardEps?.raw   ?? null;
-    const eps_anno_prec  = ks.trailingEps?.raw  ?? null;
-    const shares_M       = ks.sharesOutstanding?.raw
+
+    // ── Valutazione ──────────────────────────────────────────────────────────
+    const pe_forward    = sd.forwardPE?.raw   ?? null;
+    const pe_trailing   = sd.trailingPE?.raw  ?? null;
+    const eps_consenso  = ks.forwardEps?.raw  ?? null;
+    const eps_anno_prec = ks.trailingEps?.raw ?? null;
+    const shares_M      = ks.sharesOutstanding?.raw
       ? +(ks.sharesOutstanding.raw / 1e6).toFixed(1) : null;
- 
-    // ── Short interest ────────────────────────────────────────────────────
+
+    // ── Short interest ───────────────────────────────────────────────────────
     const short_interest_pct = ks.shortPercentOfFloat?.raw
       ? +(ks.shortPercentOfFloat.raw * 100).toFixed(2) : null;
- 
-    // ── Giorni al prossimo earnings ───────────────────────────────────────
+
+    // ── Giorni al prossimo earnings ──────────────────────────────────────────
     const earningsArr = cal.earnings?.earningsDate || [];
     let giorni_al_prossimo_earnings = null;
     for (const d of earningsArr) {
@@ -77,34 +118,25 @@ module.exports = async function handler(req, res) {
       const diff = Math.round((ts * 1000 - Date.now()) / 86400000);
       if (diff >= 0) { giorni_al_prossimo_earnings = diff; break; }
     }
- 
-    // ── Revisioni analisti (ultimi 30 giorni) ─────────────────────────────
-    // recommendationTrend ha bucket "0m" (mese corrente), "−1m", "−2m", "−3m"
-    let revisioni_rialzo_90g  = null;
-    let revisioni_ribasso_90g = null;
+
+    // ── Revisioni analisti ───────────────────────────────────────────────────
+    let revisioni_rialzo_90g = null, revisioni_ribasso_90g = null;
     const trends = rt.trend || [];
-    let upSum = 0, downSum = 0;
-    for (const t of trends) {
-      // Periodi 0m, -1m, -2m, -3m ≈ ultimi 90gg
-      upSum   += (t.strongBuy  || 0) + (t.buy   || 0);
-      downSum += (t.strongSell || 0) + (t.sell  || 0);
-    }
     if (trends.length > 0) {
+      let upSum = 0, downSum = 0;
+      for (const t of trends) {
+        upSum   += (t.strongBuy  || 0) + (t.buy   || 0);
+        downSum += (t.strongSell || 0) + (t.sell  || 0);
+      }
       revisioni_rialzo_90g  = upSum;
       revisioni_ribasso_90g = downSum;
     }
- 
-    // ── EPS trimestrali (ultimi 4Q dalla sezione earnings) ───────────────
+
+    // ── EPS trimestrali ──────────────────────────────────────────────────────
     const epsHistory = ea.earningsChart?.quarterly || [];
-    const eps_ultimi_4q = epsHistory
-      .slice(-4)
-      .map(q => q.actual?.raw ?? null);
-    // Pad a 4 se meno di 4 trimestri
+    const eps_ultimi_4q = epsHistory.slice(-4).map(q => q.actual?.raw ?? null);
     while (eps_ultimi_4q.length < 4) eps_ultimi_4q.unshift(null);
- 
-    // ── Settore PE (Yahoo non lo restituisce direttamente — stima) ────────
-    // Non disponibile in questa API; rimane AI
- 
+
     return res.status(200).json({
       prezzo,
       pe_forward,
@@ -119,7 +151,7 @@ module.exports = async function handler(req, res) {
       revisioni_rialzo_90g,
       revisioni_ribasso_90g,
     });
- 
+
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Errore interno market.js' });
   }

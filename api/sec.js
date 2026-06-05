@@ -44,21 +44,43 @@ module.exports = async function handler(req, res) {
 
     // getQ: aggrega TUTTI i tag candidati in un unico pool, poi prende i 12 più recenti.
     // Solo 10-Q trimestrali — nessun fallback 10-K (evitiamo periodi "FY" spuri).
-    // Per item duration (income statement, con x.start): filtra a ~3 mesi (Q trimestrale puro).
-    // Per item instant (balance sheet, senza x.start): passa sempre.
+    //
+    // STRATEGIA CHIAVE DISTINTA PER TIPO:
+    //
+    // Duration item (income statement, con x.start):
+    //   → filtra a ~3 mesi, chiave = "fy-fp"
+    //
+    // Instant item (balance sheet, senza x.start):
+    //   → chiave = x.end (data di fine periodo)
+    //   → esclude fp='Q4' e fp='FY' (sono valori fine anno fiscale, non trimestrali)
+    //
+    // Il problema con la chiave "fy-fp" per gli instant items:
+    // ogni 10-Q include il bilancio comparativo del fine anno precedente (stessa fy-fp del
+    // trimestre corrente in alcuni filing XBRL), causando sovrascrittura del valore trimestrale
+    // con quello annuale → valori identici per tutti i trimestri dello stesso anno fiscale.
+    // Usando x.end come chiave ogni snapshot di bilancio è univoco.
     function getQ(tags) {
-      const pool = {}; // key = "fy-fp", valore = entry più recente
+      const pool = {}; // chiave variabile per tipo (vedi sopra)
       for (const tag of tags) {
         const d = gaap[tag];
         if (!d?.units?.USD) continue;
         for (const x of d.units.USD) {
           if (x.form !== '10-Q' || !x.fp || x.fp === 'FY' || !x.fy || !x.end) continue;
-          // Duration item → solo periodi ~3 mesi
+
+          if (!['Q1','Q2','Q3'].includes(x.fp)) continue; // solo trimestri Q1-Q3 (10-Q reali)
+
+          let key;
           if (x.start) {
+            // Duration item (income statement): filtra a ~1 trimestre, chiave fy-fp
             const days = (new Date(x.end) - new Date(x.start)) / 86400000;
             if (days < 60 || days > 110) continue;
+            key = `${x.fy}-${x.fp}`;
+          } else {
+            // Instant item (balance sheet): snapshot alla data di fine trimestre.
+            // Usa x.end come chiave univoca (evita sovrascrittura con comparativi fine anno).
+            key = x.end;
           }
-          const key = `${x.fy}-${x.fp}`;
+
           if (!pool[key] || x.filed > pool[key].filed) pool[key] = x;
         }
       }
@@ -285,7 +307,9 @@ module.exports = async function handler(req, res) {
     // Se val % 1e3 === 0 → archivia in migliaia → toFixed(3).
     // Altrimenti → valore esatto in dollari → toFixed(6).
     function lookup(arr, item) {
-      const m = arr.find(d => d.fp === item.fp && d.fy === item.fy);
+      // Per instant items (balance sheet), item.end è la chiave univoca usata in getQ().
+      // Cerca prima per data di fine (match preciso per snapshot bilancio), poi fallback fp+fy.
+      const m = arr.find(d => d.end === item.end) || arr.find(d => d.fp === item.fp && d.fy === item.fy);
       if (m === undefined || m === null) return null;
       const v = m.val / 1e6;
       // Determina precisione effettiva dal valore grezzo

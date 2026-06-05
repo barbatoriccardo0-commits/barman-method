@@ -53,7 +53,7 @@ async function callOpenAI(apiKey, model, systemPrompt, userContent) {
     },
     body: JSON.stringify({
       model: model || 'gpt-4o',
-      max_tokens: 4096,
+      max_tokens: 16000,
       temperature: 0,
       messages: [
         { role: 'system', content: systemPrompt },

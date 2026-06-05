@@ -2050,6 +2050,22 @@ function scheduleMonitor(titleId) {
   });
 }
 
+// ===== HELPER: trova l'indice del trimestre dell'anno precedente con stesso fp =====
+// Per Nike (3 10-Qs/anno) l'offset fisso i-4 confronta trimestri diversi (Q2FY23 vs Q1FY22).
+// Questa funzione usa fp+fy dal label "Q1 FY2023 (ago'22)" per trovare il match corretto.
+// Fallback a i-4 per label inseriti manualmente (es. "Q1'22") o se non trovato.
+function findPriorYearIdx(ql, i) {
+  const m = (ql[i]||'').match(/(Q[1-4])\s+FY(\d{4})/i);
+  if (!m) return i - 4; // fallback: label manuale o formato non standard
+  const fp = m[1].toUpperCase();
+  const fyPrev = parseInt(m[2]) - 1;
+  const j = ql.findIndex((l, k) => {
+    const n = (l||'').match(/(Q[1-4])\s+FY(\d{4})/i);
+    return n && n[1].toUpperCase() === fp && parseInt(n[2]) === fyPrev;
+  });
+  return j !== -1 ? j : i - 4; // fallback se non trovato nell'array
+}
+
 // ===== MANUAL ANALYSIS =====
 async function runManualAnalysis() {
   const company = document.getElementById('a_company').value || 'N/D';
@@ -2126,14 +2142,16 @@ async function runManualAnalysis() {
   // Compute DSI and YoY
   const dsiArr = inv.map((v,i)=> (v!=null && cogs[i]!=null && cogs[i]>0) ? v/cogs[i]*90 : null);
   let yoyRows = '';
-  for (let i=4; i<12; i++) {
-    if ((inv[i]!=null||sal[i]!=null)&&(inv[i-4]!=null||sal[i-4]!=null)) {
-      const dsiNow = dsiArr[i], dsiPrev = dsiArr[i-4];
+  for (let i=0; i<12; i++) {
+    const prev = findPriorYearIdx(ql, i);
+    if (prev < 0 || prev >= 12) continue;
+    if ((inv[i]!=null||sal[i]!=null)&&(inv[prev]!=null||sal[prev]!=null)) {
+      const dsiNow = dsiArr[i], dsiPrev = dsiArr[prev];
       const yoyDsi = (dsiNow!=null&&dsiPrev!=null&&dsiPrev>0) ? ((dsiNow/dsiPrev-1)*100).toFixed(1)+'%' : 'N/D';
-      const invYoy = (inv[i]!=null&&inv[i-4]!=null&&inv[i-4]>0) ? ((inv[i]/inv[i-4]-1)*100).toFixed(1)+'%' : 'N/D';
-      const salYoy = (sal[i]!=null&&sal[i-4]!=null&&sal[i-4]>0) ? ((sal[i]/sal[i-4]-1)*100).toFixed(1)+'%' : 'N/D';
-      const apYoy  = (ap[i]!=null&&ap[i-4]!=null&&ap[i-4]>0)   ? ((ap[i]/ap[i-4]-1)*100).toFixed(1)+'%'  : 'N/D';
-      yoyRows += `| ${ql[i]||'T'+(i+1)} vs ${ql[i-4]||'T'+(i-3)} | DSI YoY: ${yoyDsi} | Inv YoY: ${invYoy} | Sales YoY: ${salYoy} | AP YoY: ${apYoy} |\n`;
+      const invYoy = (inv[i]!=null&&inv[prev]!=null&&inv[prev]>0) ? ((inv[i]/inv[prev]-1)*100).toFixed(1)+'%' : 'N/D';
+      const salYoy = (sal[i]!=null&&sal[prev]!=null&&sal[prev]>0) ? ((sal[i]/sal[prev]-1)*100).toFixed(1)+'%' : 'N/D';
+      const apYoy  = (ap[i]!=null&&ap[prev]!=null&&ap[prev]>0)   ? ((ap[i]/ap[prev]-1)*100).toFixed(1)+'%'  : 'N/D';
+      yoyRows += `| ${ql[i]||'T'+(i+1)} vs ${ql[prev]||'T'+(prev+1)} | DSI YoY: ${yoyDsi} | Inv YoY: ${invYoy} | Sales YoY: ${salYoy} | AP YoY: ${apYoy} |\n`;
     }
   }
 
@@ -2156,9 +2174,12 @@ async function runManualAnalysis() {
 
   // Second-derivative DSI (acceleration/deceleration of YoY change)
   const dsiYoY = [];
-  for(let i=4;i<12;i++) {
-    if(dsiArr[i]>0 && dsiArr[i-4]>0) dsiYoY.push({q:ql[i]||'T'+(i+1), delta:(dsiArr[i]/dsiArr[i-4]-1)*100});
-    else dsiYoY.push(null);
+  for(let i=0;i<12;i++) {
+    const prev = findPriorYearIdx(ql, i);
+    if(prev >= 0 && prev < 12 && dsiArr[i]>0 && dsiArr[prev]>0)
+      dsiYoY.push({q:ql[i]||'T'+(i+1), delta:(dsiArr[i]/dsiArr[prev]-1)*100});
+    else
+      dsiYoY.push(null);
   }
   let d2dsiStr = '';
   for(let i=1;i<dsiYoY.length;i++) {

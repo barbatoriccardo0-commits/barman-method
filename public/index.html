@@ -1488,7 +1488,9 @@ REGOLE CRITICHE:
   setFieldG('a_pe_sector', data.pe_settore,     78, 'Finviz / Sector benchmarks', srcFinviz);
   setFieldG('a_gm_normal', data.gm_normalizzato,78, 'Stockanalysis', srcSA);
 
-  // Store delta, DTC% → solo da earnings release (AI)
+  // Store delta, DTC% → da AI (earnings release / annual report)
+  setFieldC('a_store_delta', data.store_delta_yoy_pct, 65, 'Earnings Release / 10-K', srcEdgar);
+  setFieldC('a_dtc_pct',     data.dtc_pct,             70, 'Earnings Release / Annual Report', srcEdgar);
   } // fine if (data)
 
   // Contesto settore → gestito più avanti con setTextareaC
@@ -1966,8 +1968,18 @@ function renderProbMeter(text, containerId) {
 
   // Supporta sia PUNTEGGIO_CICLO che PROBABILITÀ LONG
   const match = text.match(/PUNTEGGIO_CICLO[:\s]+(\d+)/i) || text.match(/PROBABILIT[ÀA]\s+LONG[:\s]+(\d+)/i);
-  if (!match) { container.innerHTML = ''; return; }
-  let score = Math.max(1, Math.min(100, parseInt(match[1])));
+  let score;
+  if (!match) {
+    // Fallback: risposta troncata o formato non seguito — deriva score dal verdetto narrativo
+    const searchText = text.slice(-3000);
+    const hasVerde = /🟢\s*VERDE|✅\s*LONG|VERDE AZIENDALE/i.test(searchText);
+    const hasRosso = /🔴\s*ROSSO|❌\s*SHORT|ROSSO AZIENDALE/i.test(searchText);
+    if (hasVerde && !hasRosso) score = 72;
+    else if (hasRosso && !hasVerde) score = 25;
+    else score = 50; // NEUTRAL o ambiguo
+  } else {
+    score = Math.max(1, Math.min(100, parseInt(match[1])));
+  }
 
   // Safety net: allinea PUNTEGGIO_CICLO al verdetto narrativo (stessa logica di renderResult)
   const tail2k = text.slice(-2000);

@@ -228,15 +228,13 @@ module.exports = async function handler(req, res) {
     const sharesArr = getQShares(['CommonStockSharesOutstanding','CommonStockSharesIssued']);
 
     // ── 5. Sceglie il riferimento temporale ───────────────────────────────
-    // Prende la serie con più dati recenti. Preferisce inventario, poi ricavi.
-    function mostRecentEnd(arr) {
-      if (!arr.length) return 0;
-      return Math.max(...arr.map(x => new Date(x.end).getTime()));
-    }
+    // DETERMINISTICO: preferisce sempre inventario (serie più stabile per Berman).
+    // Fallback a ricavi solo se inventario ha dati insufficienti.
     let ref = null;
-    if (inv.length >= 2 && rev.length >= 2) {
-      // Prendi quella con i dati più recenti
-      ref = mostRecentEnd(inv) >= mostRecentEnd(rev) ? inv : rev;
+    if (inv.length >= 4) {
+      ref = inv;
+    } else if (rev.length >= 4) {
+      ref = rev;
     } else if (inv.length >= 2) {
       ref = inv;
     } else if (rev.length >= 2) {

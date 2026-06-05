@@ -724,15 +724,12 @@ tr:hover td{background:#f8faff;}
     <div class="loading-row" id="loadingA" style="display:none;"><div class="spinner"></div><span>Applicazione del metodo Berman in corso...</span></div>
     <div class="result-content" id="resultContentA"></div>
     <div id="redFlagsA"></div>
-    <div id="probMeterA"></div>
 
-    <!-- VERDETTO FINALE — appare dopo l'analisi -->
+    <!-- VERDETTO FINALE con scala — appare dopo l'analisi -->
     <div id="verdictCardA" style="display:none;margin-top:20px;border-radius:12px;padding:24px;border:3px solid #ccc;">
       <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:10px;">Verdetto Finale Berman</div>
-      <div id="verdictLabelA" style="font-size:36px;font-weight:900;margin-bottom:16px;"></div>
-      <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Perché questo verdetto</div>
-      <div id="verdictWhyA" style="font-size:15px;line-height:1.7;color:#333;"></div>
-      <div id="verdictMotivationsA" style="margin-top:14px;font-size:13px;color:#555;line-height:1.6;"></div>
+      <div id="verdictLabelA" style="font-size:36px;font-weight:900;margin-bottom:20px;"></div>
+      <div id="probMeterA"></div>
     </div>
 
     <div id="monitorBtnWrapA" style="display:none;margin-top:16px;">
@@ -1919,35 +1916,15 @@ function renderResult(text, titleId, signalId, contentId, loadingWrapId) {
 
   const mw = document.getElementById(loadingWrapId); if(mw) mw.style.display='block';
 
-  // ── ARRICCHISCI VERDETTO CARD CON SPIEGAZIONE AI ─────────────────────────
+  // ── VERDETTO CARD: mostra label colorata + scala ─────────────────────────
   if (contentId === 'resultContentA') {
     const vc  = document.getElementById('verdictCardA');
-    const vwEl = document.getElementById('verdictWhyA');
-    const vmEl = document.getElementById('verdictMotivationsA');
     const vlEl = document.getElementById('verdictLabelA');
-    if (vc && vwEl) {
-      // Sincronizza card con i valori già calcolati sopra
+    if (vc) {
       vc.style.background  = aiBg;
       vc.style.borderColor = aiBorder;
       if (vlEl) { vlEl.textContent = aiLabel; vlEl.style.color = aiColor; }
-
-      // Estrai "PERCHÉ QUESTO VERDETTO" dal testo AI
-      const whyMatch = text.match(/PERCH[ÉE][^\n]*\n([\s\S]*?)(?:\*\*4 segnali|\*\*4 motivazioni|##\s|\n═|$)/i);
-      const why = whyMatch ? whyMatch[1].replace(/\*\*/g,'').replace(/^\s*[-–]\s*/gm,'').trim() : '';
-      if (why) vwEl.textContent = why;
-
-      // Estrai 4 motivazioni tecniche
-      const motMatch = text.match(/4 segnali principali[^\n]*\n([\s\S]*?)(?:Rischio principale|##\s|\n━|$)/i)
-                    || text.match(/4 motivazioni[^\n]*\n([\s\S]*?)(?:##\s|\n═|TIMING|$)/i);
-      if (motMatch && vmEl) {
-        const motivations = motMatch[1].trim()
-          .split('\n').filter(l => l.trim() && /^\d|^[-–•]/.test(l.trim()))
-          .map(l => `<div style="margin-bottom:6px;padding-left:12px;border-left:3px solid ${aiBorder};">${l.replace(/^\d+\.\s*|^[-–•]\s*/,'')}</div>`)
-          .join('');
-        if (motivations) vmEl.innerHTML = motivations;
-      }
-      // verdictCardA is suppressed — VERDETTO BERMAN is already rendered in resultContentA
-      // vc.style.display = 'block';
+      vc.style.display = 'block';
     }
   }
 
@@ -2277,10 +2254,7 @@ async function runManualAnalysis() {
   }
   const vlReset = document.getElementById('verdictLabelA');
   if (vlReset) { vlReset.textContent = ''; vlReset.style.color = ''; }
-  const vwReset = document.getElementById('verdictWhyA');
-  if (vwReset) vwReset.textContent = 'Analisi quantitativa in corso...';
-  const vmReset = document.getElementById('verdictMotivationsA');
-  if (vmReset) vmReset.innerHTML = '';
+  // verdictWhyA / verdictMotivationsA removed — spiegazione è nel testo AI
   document.getElementById('resultTitleA').textContent=`Analisi Berman — ${company} (${ticker})`;
   rb.scrollIntoView({behavior:'smooth',block:'start'});
 
@@ -2928,10 +2902,6 @@ function showJsVerdictCard(result) {
   vc.style.display     = 'block';
   document.getElementById('verdictLabelA').textContent = result.label;
   document.getElementById('verdictLabelA').style.color = result.color;
-  document.getElementById('verdictWhyA').textContent   = 'Analisi quantitativa in corso...';
-  document.getElementById('verdictMotivationsA').innerHTML = result.reasons
-    .map(r=>`<div style="margin-bottom:6px;padding-left:12px;border-left:3px solid ${result.border};">${r}</div>`)
-    .join('');
   // Aggiorna anche il badge nell'header
   const sigEl = document.getElementById('resultSignalA');
   if (sigEl) {

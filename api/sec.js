@@ -181,6 +181,8 @@ module.exports = async function handler(req, res) {
     const inv = getQ([
       'InventoryNet','Inventories','InventoriesNet',
       'InventoryFinishedGoods','InventoryFinishedGoodsNetOfReserves',
+      'RetailRelatedInventoryMerchandise','InventoryGross',
+      'InventoryRealEstateHeldForSale','InventoryRealEstate',
     ]);
 
     // COGS: prova trimestrale diretto, fallback YTD-diff
@@ -262,7 +264,14 @@ module.exports = async function handler(req, res) {
     } else if (rev.length >= 2) {
       ref = rev;
     }
-    if (!ref) return res.status(404).json({ error: 'Dati insufficienti per ' + ticker });
+    if (!ref) return res.status(404).json({
+      error: 'Dati insufficienti per ' + ticker,
+      debug: {
+        inv_len: inv.length, rev_len: rev.length,
+        cogs_len: cogs.length, ap_len: ap.length,
+        gaap_keys_sample: Object.keys(gaap).slice(0, 20),
+      }
+    });
 
     // ── 6. Rilevamento anno fiscale ───────────────────────────────────────
     const MESI_IT = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];

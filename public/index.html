@@ -1435,6 +1435,7 @@ REGOLE CRITICHE:
   if (data?.negozi) setFieldG('a_stores', data.negozi, 85, 'Yahoo Finance / 10-K', srcYahoo);
 
   // ── Dati di mercato REALI da Yahoo Finance via /api/market (≥95%) ──────
+  // Prima passa: Yahoo — imposta ogni campo non-null come verde
   if (mkt && !mkt.error) {
     // Prezzo e valutazione
     if (mkt.prezzo      !== null) setFieldG('a_price',    mkt.prezzo,            97, 'Yahoo Finance (tempo reale)', srcYahoo);
@@ -1456,25 +1457,37 @@ REGOLE CRITICHE:
           setFieldG(id, mkt.eps_ultimi_4q[i], 95, 'Yahoo Finance — Quarterly EPS', srcYahoo);
       });
     }
-  } else {
-    // Fallback AI per mercato (arancione)
-    if (data) {
-      setFieldG('a_price',    data.prezzo,           90, 'Yahoo Finance',     srcYahoo);
-      setFieldG('a_pe',       data.pe_forward,       90, 'Yahoo Finance',     srcYahoo);
-      setFieldG('a_pe_fwd',   data.pe_forward,       90, 'Yahoo Finance',     srcYahoo);
-      setFieldG('a_eps_cons', data.eps_consenso,     90, 'Yahoo Finance',     srcYahoo);
-      setFieldG('a_eps_prev', data.eps_anno_prec,    90, 'Yahoo Finance',     srcYahoo);
-      setFieldG('a_shares',   data.shares_M,         90, 'Yahoo Finance',     srcYahoo);
-      setFieldG('a_short_int',data.short_interest_pct, 85, 'Finviz',          srcFinviz);
-      setFieldG('a_from_high',data.calo_da_high_pct, 90, 'Yahoo Finance',     srcYahoo);
-      setFieldC('a_days_to_earn', data.giorni_al_prossimo_earnings, 60, 'Yahoo Finance', srcYahoo);
-      setFieldC('a_rev_up',   data.revisioni_rialzo_90g,  60, 'Finviz / Bloomberg', srcFinviz);
-      setFieldC('a_rev_down', data.revisioni_ribasso_90g, 60, 'Finviz / Bloomberg', srcFinviz);
-      if (Array.isArray(data.eps_ultimi_4q)) {
-        ['a_eps_q1','a_eps_q2','a_eps_q3','a_eps_q4'].forEach((id, i) => {
-          setFieldC(id, data.eps_ultimi_4q[i], 75, 'Yahoo Finance', `${srcYahoo}/financials`);
-        });
-      }
+  }
+
+  // Seconda passa: AI — riempie solo i campi ancora vuoti dopo Yahoo (arancione)
+  if (data) {
+    // fillIfEmpty: imposta solo se il campo è ancora vuoto
+    const fillIfEmpty = (id, val, pct, label, url) => {
+      if (val === null || val === undefined) return;
+      const el = document.getElementById(id);
+      if (!el || el.value !== '') return;
+      el.value = val;
+      el.style.borderColor = '#f97316';
+      el.style.borderWidth = '2px';
+      el.style.background  = '#fff7ed';
+      el.title = `🟠 Accuratezza stimata: ~${pct}% — Stima AI — Verifica su: ${label} (${url})`;
+      el.dataset.uncertain = pct;
+    };
+    fillIfEmpty('a_price',    data.prezzo,                    90, 'Yahoo Finance',        srcYahoo);
+    fillIfEmpty('a_pe',       data.pe_forward,                90, 'Yahoo Finance',        srcYahoo);
+    fillIfEmpty('a_pe_fwd',   data.pe_forward,                90, 'Yahoo Finance',        srcYahoo);
+    fillIfEmpty('a_eps_cons', data.eps_consenso,              90, 'Yahoo Finance',        srcYahoo);
+    fillIfEmpty('a_eps_prev', data.eps_anno_prec,             90, 'Yahoo Finance',        srcYahoo);
+    fillIfEmpty('a_shares',   data.shares_M,                  90, 'Yahoo Finance',        srcYahoo);
+    fillIfEmpty('a_short_int',data.short_interest_pct,        85, 'Finviz',               srcFinviz);
+    fillIfEmpty('a_from_high',data.calo_da_high_pct,          90, 'Yahoo Finance',        srcYahoo);
+    fillIfEmpty('a_days_to_earn', data.giorni_al_prossimo_earnings, 60, 'Yahoo Finance',  srcYahoo);
+    fillIfEmpty('a_rev_up',   data.revisioni_rialzo_90g,      60, 'Finviz / Bloomberg',   srcFinviz);
+    fillIfEmpty('a_rev_down', data.revisioni_ribasso_90g,     60, 'Finviz / Bloomberg',   srcFinviz);
+    if (Array.isArray(data.eps_ultimi_4q)) {
+      ['a_eps_q1','a_eps_q2','a_eps_q3','a_eps_q4'].forEach((id, i) => {
+        fillIfEmpty(id, data.eps_ultimi_4q[i], 75, 'Yahoo Finance', `${srcYahoo}/financials`);
+      });
     }
   }
 
@@ -1571,8 +1584,8 @@ REGOLE CRITICHE:
   // Net Debt: cella per cella (SEC verde, AI arancione)
   highlightBySource(ndEls, 'nd', 88, 75, 'SEC EDGAR — LongTermDebt + ShortTermDebt - Cash', 'Stima AI — Balance Sheet');
 
-  // ── EPS trimestrali da SEC XBRL (se Yahoo non disponibile) ──────────────
-  if (secData && Array.isArray(secData.eps_4q) && (!mkt || mkt.error)) {
+  // ── EPS trimestrali da SEC XBRL — riempie solo i campi ancora vuoti ──────
+  if (secData && Array.isArray(secData.eps_4q)) {
     const eps4ids = ['a_eps_q1','a_eps_q2','a_eps_q3','a_eps_q4'];
     const eps4src = secData.cik
       ? `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${secData.cik}&type=10-Q&dateb=&owner=include&count=8`
@@ -1581,8 +1594,10 @@ REGOLE CRITICHE:
     const last4eps = secData.eps_4q.filter(v => v !== null).slice(-4);
     while (last4eps.length < 4) last4eps.unshift(null);
     eps4ids.forEach((id, i) => {
-      if (last4eps[i] !== null)
-        setFieldG(id, last4eps[i], 93, 'SEC EDGAR XBRL — EarningsPerShareDiluted', eps4src);
+      if (last4eps[i] === null) return;
+      const el = document.getElementById(id);
+      if (!el || el.value !== '') return; // non sovrascrivere Yahoo se già compilato
+      setFieldG(id, last4eps[i], 93, 'SEC EDGAR XBRL — EarningsPerShareDiluted', eps4src);
     });
   }
 

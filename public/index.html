@@ -1151,13 +1151,13 @@ function clearHistory() {
 async function fetchSECQuantitative(ticker) {
   try {
     const r = await fetch(`/api/sec?ticker=${encodeURIComponent(ticker)}`);
-    if (!r.ok) return null;
     const d = await r.json();
-    if (d.error) return null;
-    return d; // { cik, periodi, inv_M, cogs_M, rev_M, gm_pct, ap_M, ocf_M, ar_M, nd_M, eps_4q, latestShares }
+    // Ritorna l'oggetto anche in caso di errore — così il frontend può leggere d.error
+    // e mostrare un messaggio specifico (CIK non trovato, dati insufficienti, ecc.)
+    return d;
   } catch(e) {
     console.warn('[SEC] fetch failed:', e.message);
-    return null;
+    return { error: e.message };
   }
 }
 
@@ -1170,9 +1170,11 @@ async function runFullAnalysis() {
 
   // Step 1: carica dati nel form
   if (loadingMsg) loadingMsg.textContent = 'Passo 1/2 — Recupero dati SEC EDGAR...';
-  await fetchEdgarData();
+  const dataLoaded = await fetchEdgarData();
 
-  // Step 2: chiama l'AI per la spiegazione dettagliata (il verdetto JS viene mostrato da runManualAnalysis dopo il reset)
+  // Step 2: procede solo se i dati sono stati caricati correttamente
+  if (!dataLoaded) return;
+
   if (loadingMsg) loadingMsg.textContent = 'Passo 2/2 — Analisi AI in corso...';
   await runManualAnalysis();
 
@@ -1321,37 +1323,41 @@ REGOLE CRITICHE:
     loading.style.display = 'none';
     const jm = raw.match(/\{[\s\S]*\}/);
     if (jm) data = JSON.parse(jm[0]);
-    secData = secResult;
-    mkt     = mktResult;
+    // secResult può essere { error: '...' } o { periodi: [...], ... }
+    // secData = null se errore, oggetto dati se ok
+    const secErr = (secResult && secResult.error) ? secResult.error : '';
+    secData = (secResult && !secResult.error) ? secResult : null;
+    // Espone secErr per il messaggio di errore (usato più sotto)
+    window._lastSecErr = secErr;
+    mkt = mktResult;
   } catch(e) {
     loading.style.display = 'none';
     msg.textContent = 'Errore: ' + (e.message || e);
-    result.style.display = 'block'; return;
+    result.style.display = 'block'; return false;
   }
 
-  // Verifica dati minimi: SEC deve avere almeno 2 periodi (threshold ridotto da 4 a 2
-  // per supportare società con XBRL parziale o pochi trimestri disponibili)
-  const hasPeriods = (secData && secData.periodi && secData.periodi.length >= 2);
-  // Avviso se i dati sono pochi (2-3 periodi)
+  // Verifica dati minimi: almeno 1 periodo da SEC
+  const hasPeriods = (secData && secData.periodi && secData.periodi.length >= 1);
+  // Avviso se i dati sono pochi (2-3 periodi) ma l'analisi prosegue
   if (secData && secData.periodi && secData.periodi.length > 0 && secData.periodi.length < 4) {
     const warnEl = document.getElementById('edgarSuccessMsg');
     if (warnEl) warnEl.innerHTML = `⚠️ Solo ${secData.periodi.length} trimestri trovati su SEC EDGAR per <strong>${ticker}</strong> — analisi parziale. Per risultati accurati servono almeno 8 trimestri.`;
     document.getElementById('edgarResult').style.display = 'block';
   }
   if (!hasPeriods) {
-    // Distingui società non-SEC (europee/asiatiche) da ticker semplicemente sconosciuto
-    const noSec = !secData || secData.error || (secData.periodi && secData.periodi.length === 0);
-    const aiEmpty = !data || !data.periodi || data.periodi.length === 0;
-    let errMsg = '⚠️ Dati insufficienti per <strong>' + ticker + '</strong>. ';
-    if (noSec && aiEmpty) {
-      errMsg += 'Il ticker potrebbe essere di una società <strong>non quotata negli USA</strong> (SEC EDGAR copre solo emittenti americani). '
-              + 'Se è una società europea o asiatica, inserisci i dati manualmente.';
+    // Messaggio specifico in base al tipo di errore restituito da sec.js
+    const secErr = window._lastSecErr || '';
+    let errMsg = `⚠️ Impossibile recuperare i dati SEC EDGAR per <strong>${ticker}</strong>. `;
+    if (secErr.includes('CIK non trovato')) {
+      errMsg += 'Ticker non trovato nell\'archivio SEC. Potrebbe essere una società <strong>non quotata negli USA</strong> (europea, asiatica…) oppure il ticker è errato.';
+    } else if (secErr.includes('Dati insufficienti') || secErr.includes('us-gaap')) {
+      errMsg += 'I dati XBRL su SEC EDGAR per questo ticker sono insufficienti o strutturati in modo non standard. Prova a inserire i dati manualmente.';
     } else {
-      errMsg += 'Prova a inserirli manualmente o usa i link sotto.';
+      errMsg += 'Potrebbe essere un problema temporaneo. Riprova tra qualche minuto, oppure inserisci i dati manualmente.';
     }
     msg.innerHTML = errMsg;
     result.style.display = 'block';
-    buildEdgarLinks(ticker, links); return;
+    buildEdgarLinks(ticker, links); return false;
   }
 
   // ── URL fonti dinamici per questo ticker ───────────────────────────────
@@ -1771,6 +1777,7 @@ REGOLE CRITICHE:
     ${fontiHtml}`;
   result.style.display = 'block';
   buildEdgarLinks(ticker, links);
+  return true; // segnala successo a runFullAnalysis
 }
 
 function buildEdgarLinks(ticker, container) {

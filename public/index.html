@@ -1329,8 +1329,15 @@ REGOLE CRITICHE:
     result.style.display = 'block'; return;
   }
 
-  // Verifica dati minimi: SEC o AI deve avere almeno i periodi
-  const hasPeriods = (secData && secData.periodi.length >= 4) || (data && data.periodi && data.periodi.length);
+  // Verifica dati minimi: SEC deve avere almeno 2 periodi (threshold ridotto da 4 a 2
+  // per supportare società con XBRL parziale o pochi trimestri disponibili)
+  const hasPeriods = (secData && secData.periodi && secData.periodi.length >= 2);
+  // Avviso se i dati sono pochi (2-3 periodi)
+  if (secData && secData.periodi && secData.periodi.length > 0 && secData.periodi.length < 4) {
+    const warnEl = document.getElementById('edgarSuccessMsg');
+    if (warnEl) warnEl.innerHTML = `⚠️ Solo ${secData.periodi.length} trimestri trovati su SEC EDGAR per <strong>${ticker}</strong> — analisi parziale. Per risultati accurati servono almeno 8 trimestri.`;
+    document.getElementById('edgarResult').style.display = 'block';
+  }
   if (!hasPeriods) {
     // Distingui società non-SEC (europee/asiatiche) da ticker semplicemente sconosciuto
     const noSec = !secData || secData.error || (secData.periodi && secData.periodi.length === 0);

@@ -59,32 +59,36 @@ module.exports = async function handler(req, res) {
     // trimestre corrente in alcuni filing XBRL), causando sovrascrittura del valore trimestrale
     // con quello annuale → valori identici per tutti i trimestri dello stesso anno fiscale.
     // Usando x.end come chiave ogni snapshot di bilancio è univoco.
+    // MODULI ACCETTATI: 10-Q regolare e 10-Q/A (emendato)
+    const QUARTERLY_FORMS = new Set(['10-Q', '10-Q/A']);
+
     function getQ(tags) {
-      const pool = {}; // chiave variabile per tipo (vedi sopra)
+      const pool = {};
       for (const tag of tags) {
         const d = gaap[tag];
         if (!d?.units?.USD) continue;
         for (const x of d.units.USD) {
-          if (x.form !== '10-Q' || !x.fp || x.fp === 'FY' || !x.fy || !x.end) continue;
-
-          if (!['Q1','Q2','Q3'].includes(x.fp)) continue; // solo trimestri Q1-Q3 (10-Q reali)
-
+          if (!QUARTERLY_FORMS.has(x.form)) continue;
+          if (!x.fp || x.fp === 'FY' || !x.fy || !x.end) continue;
+          // Accetta Q1-Q3 (standard) e anche Q4 per instant items — alcune società
+          // taggano il Q4 comparativo in XBRL con fp=Q4 anche nei 10-Q.
+          // Per duration items (income statement) manteniamo il filtro Q1-Q3 + durata.
           let key;
           if (x.start) {
-            // Duration item (income statement): filtra a ~1 trimestre, chiave fy-fp
+            // Duration item: solo Q1-Q3, durata ~1 trimestre (60-110 gg)
+            if (!['Q1','Q2','Q3'].includes(x.fp)) continue;
             const days = (new Date(x.end) - new Date(x.start)) / 86400000;
             if (days < 60 || days > 110) continue;
             key = `${x.fy}-${x.fp}`;
           } else {
-            // Instant item (balance sheet): snapshot alla data di fine trimestre.
-            // Usa x.end come chiave univoca (evita sovrascrittura con comparativi fine anno).
+            // Instant item (balance sheet): chiave = data fine (unica per ogni snapshot)
+            // Includi Q1-Q3 solo — Q4 instant da 10-Q è sempre il comparativo dell'anno prec.
+            if (!['Q1','Q2','Q3'].includes(x.fp)) continue;
             key = x.end;
           }
-
           if (!pool[key] || x.filed > pool[key].filed) pool[key] = x;
         }
       }
-      // Prendi i 12 più recenti (sort DESCENDING per data fine, slice(0,12), poi riporta in ordine cronologico)
       const sorted = Object.values(pool)
         .sort((a, b) => new Date(b.end) - new Date(a.end))
         .slice(0, 12)
@@ -101,7 +105,8 @@ module.exports = async function handler(req, res) {
         const d = gaap[tag];
         if (!d?.units?.USD) continue;
         for (const x of d.units.USD) {
-          if (x.form !== '10-Q' || !x.fp || !x.fy || !x.start || !x.end) continue;
+          if (!QUARTERLY_FORMS.has(x.form)) continue;
+          if (!x.fp || !x.fy || !x.start || !x.end) continue;
           const days = (new Date(x.end) - new Date(x.start)) / 86400000;
           if (days < 55) continue; // scarta rumori
           const key = `${x.fy}-${x.fp}`;
@@ -189,9 +194,11 @@ module.exports = async function handler(req, res) {
     let cogs = getQ([
       'CostOfRevenue','CostOfGoodsSold','CostOfGoodsAndServicesSold',
       'CostOfGoodsSoldExcludingDepletionDepreciationAndAmortization',
+      'CostOfMerchandiseSoldDirectMaterial',
     ]);
     if (cogs.length < 2) cogs = getQFromYTD([
       'CostOfRevenue','CostOfGoodsSold','CostOfGoodsAndServicesSold',
+      'CostOfMerchandiseSoldDirectMaterial',
     ]);
 
     // Revenues: prova trimestrale diretto, fallback YTD-diff
@@ -201,11 +208,13 @@ module.exports = async function handler(req, res) {
       'RevenueFromContractWithCustomerIncludingAssessedTax',
       'SalesRevenueGoodsNet','SalesRevenueServicesNet',
       'RevenueNotFromContractWithCustomer',
+      'NetSales','TotalRevenues',
     ]);
     if (rev.length < 2) rev = getQFromYTD([
       'Revenues','SalesRevenueNet','NetRevenues',
       'RevenueFromContractWithCustomerExcludingAssessedTax',
       'RevenueFromContractWithCustomerIncludingAssessedTax',
+      'NetSales','TotalRevenues',
     ]);
 
     const gp = getQ(['GrossProfit','GrossProfitLoss']);
@@ -252,18 +261,16 @@ module.exports = async function handler(req, res) {
     const sharesArr = getQShares(['CommonStockSharesOutstanding','CommonStockSharesIssued']);
 
     // ── 5. Sceglie il riferimento temporale ───────────────────────────────
-    // DETERMINISTICO: preferisce sempre inventario (serie più stabile per Berman).
-    // Fallback a ricavi solo se inventario ha dati insufficienti.
+    // DETERMINISTICO: preferisce inventario (serie più stabile per Berman).
+    // Fallback progressivo: inv ≥4 → rev ≥4 → inv ≥2 → rev ≥2 → inv ≥1 → rev ≥1
     let ref = null;
-    if (inv.length >= 4) {
-      ref = inv;
-    } else if (rev.length >= 4) {
-      ref = rev;
-    } else if (inv.length >= 2) {
-      ref = inv;
-    } else if (rev.length >= 2) {
-      ref = rev;
-    }
+    if (inv.length >= 4)      ref = inv;
+    else if (rev.length >= 4) ref = rev;
+    else if (inv.length >= 2) ref = inv;
+    else if (rev.length >= 2) ref = rev;
+    else if (inv.length >= 1) ref = inv;  // ultimo fallback: almeno 1 dato
+    else if (rev.length >= 1) ref = rev;
+
     if (!ref) return res.status(404).json({
       error: 'Dati insufficienti per ' + ticker,
       debug: {

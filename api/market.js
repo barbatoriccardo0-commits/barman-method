@@ -98,8 +98,9 @@ module.exports = async function handler(req, res) {
       : null;
 
     // ── Valutazione ──────────────────────────────────────────────────────────
-    const pe_forward    = sd.forwardPE?.raw   ?? null;
-    const pe_trailing   = sd.trailingPE?.raw  ?? null;
+    const fd = result?.financialData || {};
+    const pe_forward    = sd.forwardPE?.raw   ?? fd.forwardPE?.raw    ?? null;
+    const pe_trailing   = sd.trailingPE?.raw  ?? fd.trailingPE?.raw   ?? null;
     const eps_consenso  = ks.forwardEps?.raw  ?? null;
     const eps_anno_prec = ks.trailingEps?.raw ?? null;
     const shares_M      = ks.sharesOutstanding?.raw
@@ -123,13 +124,12 @@ module.exports = async function handler(req, res) {
     let revisioni_rialzo_90g = null, revisioni_ribasso_90g = null;
     const trends = rt.trend || [];
     if (trends.length > 0) {
-      let upSum = 0, downSum = 0;
-      for (const t of trends) {
-        upSum   += (t.strongBuy  || 0) + (t.buy   || 0);
-        downSum += (t.strongSell || 0) + (t.sell  || 0);
+      // Usa solo il periodo corrente (0m = ultimi 30gg), non la somma di tutti i periodi
+      const latest = trends.find(t => t.period === '0m') || trends[0];
+      if (latest) {
+        revisioni_rialzo_90g  = (latest.strongBuy  || 0) + (latest.buy   || 0);
+        revisioni_ribasso_90g = (latest.strongSell || 0) + (latest.sell  || 0);
       }
-      revisioni_rialzo_90g  = upSum;
-      revisioni_ribasso_90g = downSum;
     }
 
     // ── EPS trimestrali ──────────────────────────────────────────────────────

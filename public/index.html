@@ -1193,6 +1193,37 @@ async function fetchEdgarData() {
 
   loading.style.display = 'flex'; result.style.display = 'none';
 
+  // ── Pulisce tutti i campi della form prima di ogni nuova analisi ──────────
+  {
+    const numIds = [
+      'a_price','a_pe','a_pe_fwd','a_pe_sector','a_eps_cons','a_eps_prev',
+      'a_shares','a_short_int','a_from_high','a_days_to_earn',
+      'a_rev_up','a_rev_down','a_mgmt_misses','a_stores','a_store_delta',
+      'a_dtc_pct','a_gm_normal',
+      'a_eps_q1','a_eps_q2','a_eps_q3','a_eps_q4',
+    ];
+    numIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = '';
+      el.style.borderColor = '';
+      el.style.borderWidth = '';
+      el.style.background  = '';
+      el.title = '';
+    });
+    // Griglia 12 trimestri
+    document.querySelectorAll('#tab-analyzer .ql, #tab-analyzer .inv, #tab-analyzer .cogs, #tab-analyzer .sales, #tab-analyzer .gm, #tab-analyzer .sss, #tab-analyzer .ap, #tab-analyzer .ocf, #tab-analyzer .ar, #tab-analyzer .nd').forEach(el => {
+      el.value = '';
+      el.style.borderColor = '';
+      el.style.borderWidth = '';
+      el.style.background  = '';
+      el.title = '';
+    });
+    // Campo testo contesto settore
+    const ctxEl = document.getElementById('a_context');
+    if (ctxEl) { ctxEl.value = ''; ctxEl.style.borderColor = ''; ctxEl.style.background = ''; }
+  }
+
   const prompt = `Sei un analista finanziario forense specializzato nel Metodo Berman (inventario retail). Raccogli TUTTI i dati disponibili per ${company || ticker} (ticker: ${ticker}) dalla tua knowledge base aggiornata (SEC EDGAR 10-Q/10-K, earnings call trascrizioni, Macrotrends, Stockanalysis, report analisti, notizie settore).
 
 Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — nessun testo prima o dopo.
@@ -1301,7 +1332,17 @@ REGOLE CRITICHE:
   // Verifica dati minimi: SEC o AI deve avere almeno i periodi
   const hasPeriods = (secData && secData.periodi.length >= 4) || (data && data.periodi && data.periodi.length);
   if (!hasPeriods) {
-    msg.innerHTML = '⚠️ Dati insufficienti per ' + ticker + '. Prova a inserirli manualmente o usa i link sotto.';
+    // Distingui società non-SEC (europee/asiatiche) da ticker semplicemente sconosciuto
+    const noSec = !secData || secData.error || (secData.periodi && secData.periodi.length === 0);
+    const aiEmpty = !data || !data.periodi || data.periodi.length === 0;
+    let errMsg = '⚠️ Dati insufficienti per <strong>' + ticker + '</strong>. ';
+    if (noSec && aiEmpty) {
+      errMsg += 'Il ticker potrebbe essere di una società <strong>non quotata negli USA</strong> (SEC EDGAR copre solo emittenti americani). '
+              + 'Se è una società europea o asiatica, inserisci i dati manualmente.';
+    } else {
+      errMsg += 'Prova a inserirli manualmente o usa i link sotto.';
+    }
+    msg.innerHTML = errMsg;
     result.style.display = 'block';
     buildEdgarLinks(ticker, links); return;
   }

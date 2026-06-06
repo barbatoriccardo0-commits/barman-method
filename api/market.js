@@ -98,6 +98,7 @@ module.exports = async function handler(req, res) {
       : null;
 
     // ── Valutazione ──────────────────────────────────────────────────────────
+    // Nota: summaryDetail.forwardPE spesso null su Yahoo → fallback su financialData
     const fd = result?.financialData || {};
     const pe_forward    = sd.forwardPE?.raw   ?? fd.forwardPE?.raw    ?? null;
     const pe_trailing   = sd.trailingPE?.raw  ?? fd.trailingPE?.raw   ?? null;

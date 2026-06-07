@@ -14,20 +14,48 @@ module.exports = async function handler(req, res) {
   const UA = 'MetodoBerman/1.0 riccardobarbato27@gmail.com';
 
   try {
-    // ── 1. CIK dal ticker ──────────────────────────────────────────────────
-    const r1 = await fetch('https://www.sec.gov/files/company_tickers.json', {
-      headers: { 'User-Agent': UA }
-    });
-    if (!r1.ok) return res.status(502).json({ error: `SEC tickers HTTP ${r1.status}` });
-    const tMap = await r1.json();
-
+    // ── 1. CIK dal ticker — doppio metodo ─────────────────────────────────
+    // Metodo A (primario, veloce): EDGAR company-search accetta ticker direttamente
+    // e restituisce il CIK nell'URL reale — molto più leggero di scaricare 10MB.
     let cik = null;
-    for (const k of Object.keys(tMap)) {
-      if ((tMap[k].ticker || '').toUpperCase() === ticker) {
-        cik = String(tMap[k].cik_str).padStart(10, '0');
-        break;
+
+    try {
+      const rA = await fetch(
+        `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${encodeURIComponent(ticker)}&type=10-Q&dateb=&owner=include&count=1&output=atom`,
+        { headers: { 'User-Agent': UA } }
+      );
+      if (rA.ok) {
+        const xml = await rA.text();
+        // Il feed atom include il CIK nel tag <company-info> o nell'URL delle entry
+        const mInfo = xml.match(/<cik>(\d+)<\/cik>/i);
+        if (mInfo) {
+          cik = String(mInfo[1]).padStart(10, '0');
+        } else {
+          // Fallback: cerca pattern CIK= nell'XML
+          const mUrl = xml.match(/CIK[=:]0*(\d{5,10})/i);
+          if (mUrl) cik = String(mUrl[1]).padStart(10, '0');
+        }
       }
+    } catch (_) { /* ignora, procede al metodo B */ }
+
+    // Metodo B (fallback): scansiona company_tickers.json
+    if (!cik) {
+      try {
+        const rB = await fetch('https://www.sec.gov/files/company_tickers.json', {
+          headers: { 'User-Agent': UA }
+        });
+        if (rB.ok) {
+          const tMap = await rB.json();
+          for (const k of Object.keys(tMap)) {
+            if ((tMap[k].ticker || '').toUpperCase() === ticker) {
+              cik = String(tMap[k].cik_str).padStart(10, '0');
+              break;
+            }
+          }
+        }
+      } catch (_) { /* ignora */ }
     }
+
     if (!cik) return res.status(404).json({ error: `CIK non trovato per ${ticker}` });
 
     // ── 2. Company facts XBRL ─────────────────────────────────────────────

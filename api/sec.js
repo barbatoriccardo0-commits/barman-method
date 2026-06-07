@@ -182,48 +182,78 @@ module.exports = async function handler(req, res) {
         .slice(-4);
     }
 
-    // ── 4. Estrai ogni metrica ─────────────────────────────────────────────
-    const inv = getQ([
+    // ── 4. Auto-discovery dei tag XBRL specifici dell'azienda ──────────────
+    // Scannerizza TUTTI i tag gaap presenti per trovare varianti non standard.
+    // Questo rende il codice universale per qualsiasi azienda americana.
+    const allGaapKeys = Object.keys(gaap);
+
+    // Inventory: qualsiasi tag contenente "inventor", "merchandise", "stockintrade"
+    const invTagsAuto = allGaapKeys.filter(k => {
+      const l = k.toLowerCase();
+      return l.includes('inventor') || l.includes('merchandise') || l.includes('stockintrade');
+    });
+    const invTagsBase = [
       'InventoryNet','Inventories','InventoriesNet',
       'InventoryFinishedGoods','InventoryFinishedGoodsNetOfReserves',
       'RetailRelatedInventoryMerchandise','InventoryGross',
       'InventoryRealEstateHeldForSale','InventoryRealEstate',
-    ]);
+    ];
+    const invTags = [...new Set([...invTagsBase, ...invTagsAuto])];
 
-    // COGS: prova trimestrale diretto, fallback YTD-diff
-    let cogs = getQ([
+    // COGS: qualsiasi tag contenente "costofgood", "costofsales", "costofreve", "costofmerch"
+    const cogsTagsAuto = allGaapKeys.filter(k => {
+      const l = k.toLowerCase();
+      return l.startsWith('costof') || l.includes('costofsales') || l.includes('costofmerch');
+    });
+    const cogsTagsBase = [
       'CostOfRevenue','CostOfGoodsSold','CostOfGoodsAndServicesSold',
       'CostOfGoodsSoldExcludingDepletionDepreciationAndAmortization',
       'CostOfMerchandiseSoldDirectMaterial',
-    ]);
-    if (cogs.length < 2) cogs = getQFromYTD([
-      'CostOfRevenue','CostOfGoodsSold','CostOfGoodsAndServicesSold',
-      'CostOfMerchandiseSoldDirectMaterial',
-    ]);
+    ];
+    const cogsTags = [...new Set([...cogsTagsBase, ...cogsTagsAuto])];
 
-    // Revenues: prova trimestrale diretto, fallback YTD-diff
-    let rev = getQ([
+    // Revenue: qualsiasi tag contenente "revenue", "netsales", "netsale", "salesrevenue"
+    const revTagsAuto = allGaapKeys.filter(k => {
+      const l = k.toLowerCase();
+      return l.includes('revenue') || l.includes('netsales') || l.includes('salesrevenue') ||
+             l.includes('netsale') || l.includes('totalrevenue');
+    });
+    const revTagsBase = [
       'Revenues','SalesRevenueNet','NetRevenues',
       'RevenueFromContractWithCustomerExcludingAssessedTax',
       'RevenueFromContractWithCustomerIncludingAssessedTax',
       'SalesRevenueGoodsNet','SalesRevenueServicesNet',
       'RevenueNotFromContractWithCustomer',
       'NetSales','TotalRevenues',
-    ]);
-    if (rev.length < 2) rev = getQFromYTD([
-      'Revenues','SalesRevenueNet','NetRevenues',
-      'RevenueFromContractWithCustomerExcludingAssessedTax',
-      'RevenueFromContractWithCustomerIncludingAssessedTax',
-      'NetSales','TotalRevenues',
-    ]);
+    ];
+    const revTags = [...new Set([...revTagsBase, ...revTagsAuto])];
 
-    const gp = getQ(['GrossProfit','GrossProfitLoss']);
+    // ── 5. Estrai ogni metrica ─────────────────────────────────────────────
+    const inv = getQ(invTags);
 
-    const ap = getQ([
+    // COGS: prova trimestrale diretto, fallback YTD-diff
+    let cogs = getQ(cogsTags);
+    if (cogs.length < 2) cogs = getQFromYTD(cogsTags);
+
+    // Revenues: prova trimestrale diretto, fallback YTD-diff
+    let rev = getQ(revTags);
+    if (rev.length < 2) rev = getQFromYTD(revTags);
+
+    // GrossProfit: auto-discovery
+    const gpTagsAuto = allGaapKeys.filter(k => k.toLowerCase().includes('grossprofit'));
+    const gp = getQ([...new Set(['GrossProfit','GrossProfitLoss',...gpTagsAuto])]);
+
+    // AccountsPayable: auto-discovery
+    const apTagsAuto = allGaapKeys.filter(k => {
+      const l = k.toLowerCase();
+      return l.startsWith('accountspayable') && !l.includes('related');
+    });
+    const ap = getQ([...new Set([
       'AccountsPayableCurrent','AccountsPayable',
       'AccountsPayableAndAccruedLiabilitiesCurrent',
       'AccountsPayableRelatedPartiesCurrent',
-    ]);
+      ...apTagsAuto,
+    ])]);
 
     // OCF: sempre YTD nel cash flow → usa YTD-diff
     const ocf = getQFromYTD([
@@ -260,7 +290,7 @@ module.exports = async function handler(req, res) {
     const epsArr    = getQPerShare(['EarningsPerShareDiluted','EarningsPerShareBasic']);
     const sharesArr = getQShares(['CommonStockSharesOutstanding','CommonStockSharesIssued']);
 
-    // ── 5. Sceglie il riferimento temporale ───────────────────────────────
+    // ── 6. Sceglie il riferimento temporale ───────────────────────────────
     // DETERMINISTICO: preferisce inventario (serie più stabile per Berman).
     // Fallback progressivo: inv ≥4 → rev ≥4 → inv ≥2 → rev ≥2 → inv ≥1 → rev ≥1
     let ref = null;
@@ -276,11 +306,16 @@ module.exports = async function handler(req, res) {
       debug: {
         inv_len: inv.length, rev_len: rev.length,
         cogs_len: cogs.length, ap_len: ap.length,
-        gaap_keys_sample: Object.keys(gaap).slice(0, 20),
+        inv_tags_tried: invTags,
+        inv_tags_found_in_gaap: invTags.filter(t => !!gaap[t]),
+        gaap_inv_keys: allGaapKeys.filter(k => k.toLowerCase().includes('inventor')),
+        gaap_merch_keys: allGaapKeys.filter(k => k.toLowerCase().includes('merchandise')),
+        gaap_rev_keys: allGaapKeys.filter(k => k.toLowerCase().includes('revenue') || k.toLowerCase().includes('netsales')),
+        gaap_keys_sample: allGaapKeys.slice(0, 30),
       }
     });
 
-    // ── 6. Rilevamento anno fiscale ───────────────────────────────────────
+    // ── 7. Rilevamento anno fiscale ───────────────────────────────────────
     const MESI_IT = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
 
     // Da una entry Q1, ricava il mese di inizio FY (1–12)
@@ -316,7 +351,7 @@ module.exports = async function handler(req, res) {
       };
     }
 
-    // ── 7. Allineamento fy+fp ─────────────────────────────────────────────
+    // ── 8. Allineamento fy+fp ─────────────────────────────────────────────
     // lookup: converte val (dollari interi XBRL) in $M.
     // SEC EDGAR company facts memorizza i valori in dollari interi (es. 8420000000 = $8.420B).
     // Se val % 1e6 === 0 → la company archivia in milioni → toFixed(0).
